@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"lib": ["esnext", "dom", "dom.iterable"],
+		"allowJs": true,
+		"target": "es2020",
+		"noEmit": true,
+		"strict": true
+	}
+}

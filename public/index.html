@@ -1,0 +1,91 @@
+<head>
+    <title>Reibai-sensei translation</title>
+    <link rel="icon" href="./favicon.png"/>
+</head>
+
+<body>
+    <div class="split-view">
+        <div style="position: relative">
+            <img id="current_page_img"/>
+            <svg id="annotations_svg_root" style="position: absolute; left: 0" width="685" height="1024"></svg>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column">
+            <div>
+                <form id="page_select_form">
+                    <label>
+                        <span>Page: </span>
+                        <input id="page_input" type="number" value="4" min="0"/>
+                    </label>
+                    <label>
+                        <span>Volume: </span>
+                        <input id="volume_input" type="number" value="1" min="1" max="20"/>
+                    </label>
+                </form>
+            </div>
+            <div id="all_text_holder"></div>
+<!--            <div style="white-space: pre-wrap" id="selected_block_text_holder"></div>-->
+<!--            <textarea style="flex: 1" id="node_json_holder"></textarea>-->
+        </div>
+    </div>
+    <p>Hey, Ngelzzz!</p>
+    <p>Here is a web app I wrote for you to translate the the <a href="https://myanimelist.net/anime/10338/Honto_ni_Atta_Reibai_Sensei">Honto ni Atta! Reibai Sensei</a> manga</p>
+    <p>The tool is not ready for use yet, pls wait a bit before I finish implementing it!</p>
+</body>
+
+<script type="module">
+    import {loadModule} from 'https://klesun.github.io/ts-browser/src/ts-browser.js';
+    loadModule('./index.ts')
+        .then(indexModule => indexModule.default())
+        .catch(error => alert('Script execution failed - ' + error));
+</script>
+
+<style>
+    .split-view {
+        display: flex;
+    }
+    .block-polygon {
+        fill: rgba(0, 128, 0, 0.32);
+        stroke: red;
+        cursor: pointer;
+    }
+    .focused-block-polygon {
+        stroke: blue;
+    }
+    .sentence-block {
+        margin-bottom: 16px;
+    }
+    .sentence-block textarea {
+        overflow-y: hidden;
+    }
+    #all_text_holder {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        /* on 4k display it would be impractical to get blocks so fare from each other */
+        max-width: 840px;
+        white-space: pre-wrap;
+        flex: 1;
+    }
+    .sentence-block {
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+        margin-right: 12px;
+    }
+    input[type="number"] {
+        width: 80px;
+    }
+    .ocred-text-block {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+    }
+    .confidence-holder {
+        cursor: help;
+        font-size: 10px;
+        color: grey;
+        margin-left: 4px;
+    }
+    textarea::placeholder {
+        color: #c2c2c2;
+    }
+</style>
