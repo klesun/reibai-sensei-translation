@@ -1,6 +1,6 @@
 
 import {Svg, Dom} from "./modules/Dom.js";
-import {collectBlockText, getFontSize} from "./modules/OcrDataAdapter.js";
+import {collectBlockText, getBlockBounds, getFontSize} from "./modules/OcrDataAdapter.js";
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
 import {CloudVisionApiResponse, IndexedBlock, Vertex} from "./typing/CloudVisionApi.d";
 
@@ -49,26 +49,30 @@ export default async () => {
         };
 
         for (const block of blocks) {
-            for (const paragraph of block.paragraphs) {
-                for (const word of paragraph.words) {
-                    for (const symbol of word.symbols) {
-                        const vertices: Vertex[] = symbol.boundingBox.vertices;
-                        const pointsStr = vertices.map(v => v.x + ',' + v.y).join(' ');
-                        const polygon = Svg('polygon', {
-                            points: pointsStr,
-                            class: 'block-polygon',
-                            'data-block-ocr-index': block.ocrIndex,
-                        }, [
-                            Svg('title', {}, JSON.stringify(symbol) + '\n' + makeBlockStr(block)),
-                        ]);
-                        // polygon.onclick = () => {
-                        //     node_json_holder.value = window.Tls.jsExport(paragraph, '', 32);
-                        //     selected_block_text_holder.textContent = collectBlockText(paragraph);
-                        // };
-                        gui.annotations_svg_root.appendChild(polygon);
-                    }
-                }
-            }
+            const bounds = getBlockBounds(block);
+            const pointsStr = [
+                {x: bounds.minX, y: bounds.minY},
+                {x: bounds.maxX, y: bounds.minY},
+                {x: bounds.maxX, y: bounds.maxY},
+                {x: bounds.minX, y: bounds.maxY},
+            ].map(v => v.x + ',' + v.y).join(' ');
+            const polygon = Svg('polygon', {
+                points: pointsStr,
+                class: 'block-polygon',
+                'data-block-ocr-index': block.ocrIndex,
+                onmousedown: () => {
+                    [...document.querySelectorAll('.focused-block-polygon')]
+                        .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
+                    polygon.classList.toggle('focused-block-polygon', true);
+                },
+                onclick: () => {
+                    [...document.querySelectorAll('textarea[data-block-ocr-index="' + block.ocrIndex + '"]')]
+                        .forEach(area => (area as HTMLElement).focus());
+                },
+            }, [
+                Svg('title', {}, makeBlockStr(block)),
+            ]);
+            gui.annotations_svg_root.appendChild(polygon);
         }
 
         gui.all_text_holder.innerHTML = '';
@@ -76,22 +80,29 @@ export default async () => {
             const jpnSentence = collectBlockText(block).trimEnd();
             const engSentence = jpnToEng.get(jpnSentence);
 
-            const textarea = Dom('textarea', {type: 'text', placeholder: engSentence || '', rows: 2});
+            const textarea = Dom('textarea', {
+                type: 'text',
+                placeholder: engSentence || '', rows: 2,
+                'data-block-ocr-index': block.ocrIndex,
+            });
             gui.all_text_holder.appendChild(
                 Dom('div', {
                     class: 'sentence-block',
                     onmousedown: () => {
                         [...document.querySelectorAll('.focused-block-polygon')]
                             .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
-                        [...document.querySelectorAll('[data-block-ocr-index="' + block.ocrIndex + '"]')]
+                        [...document.querySelectorAll('polygon[data-block-ocr-index="' + block.ocrIndex + '"]')]
                             .forEach(poly => poly.classList.toggle('focused-block-polygon', true));
                     },
                 }, [
                     Dom('div', {class: 'ocred-text-block'}, [
                         Dom('div', {}, jpnSentence),
                         Dom('div', {style: 'display: flex; align-items: end'}, [
-                            Dom('div', {class: 'font-size-holder'}, getFontSize(block) + 'px'),
-                            Dom('div', {class: 'confidence-holder', title: 'Recognized Text Confidence'}, block.confidence.toFixed(2)),
+                            Dom('div', {}, [
+                                Dom('div', {class: 'font-size-holder'}, getFontSize(block) + 'px'),
+                                Dom('div', {class: 'confidence-holder', title: 'Recognized Text Confidence'}, block.confidence.toFixed(2)),
+                            ]),
+                            Dom('div', {class: 'bubble-number-holder'}, '#' + block.ocrIndex),
                         ]),
                     ]),
                     textarea,

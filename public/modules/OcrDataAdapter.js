@@ -10,32 +10,14 @@ export const collectBlockText = (block) => {
     return block.paragraphs.map(
         paragraph => paragraph.words
             .flatMap(w => w.symbols)
-            .filter(s => s.confidence > 0.3)
+            .filter(s => s.confidence > 0.4)
             .map(s => s.text + (s.property?.detectedBreak ? '\n' : ''))
             .join('')
     ).join('\n');
 };
 
-const getMiddlePoint = (vertices) => {
-    let xSum = 0;
-    let ySum = 0;
-    for (const verticle of vertices) {
-        xSum += verticle.x;
-        ySum += verticle.y;
-    }
-    return {
-        x: xSum / vertices.length,
-        y: ySum / vertices.length,
-    };
-};
-
 const getTopRightPoint = (vertices) => {
-    let maxX = 0;
-    let minY = 9999999;
-    for (const verticle of vertices) {
-        maxX = Math.max(maxX, verticle.x);
-        minY = Math.min(minY, verticle.y);
-    }
+    const { maxX, minY } = getBounds(vertices);
     return { x: maxX, y: minY };
 };
 
@@ -45,24 +27,39 @@ const hasJapaneseCharacters = (sentence) => {
         || sentence.match(/[㐀-龯]/); // kanji
 };
 
+/**
+ * @param {Vertex[]} vertices
+ * @return {{
+ *     minX: number,
+ *     minY: number,
+ *     maxX: number,
+ *     maxY: number,
+ * }}
+ */
+const getBounds = (vertices) => {
+    const xes = vertices
+        .map(v => v.x)
+        .sort((a,b) => a - b);
+    const minX = xes[0];
+    const maxX = xes.slice(-1)[0];
+
+    const yes = vertices
+        .map(v => v.y)
+        .sort((a,b) => a - b);
+    const minY = yes[0];
+    const maxY = yes.slice(-1)[0];
+
+    return { minX, minY, maxX, maxY };
+};
+
 /** @param {IndexedBlock} block */
 export const getFontSize = (block) => {
     let maxWidth = 0;
     for (const paragraph of block.paragraphs) {
         for (const word of paragraph.words) {
             for (const symbol of word.symbols) {
-                const xes = symbol.boundingBox.vertices
-                    .map(v => v.x)
-                    .sort((a,b) => a - b);
-                const minX = xes[0];
-                const maxX = xes.slice(-1)[0];
+                const { minX, minY, maxX, maxY } = getBounds(symbol.boundingBox.vertices);
                 const width = maxX - minX;
-
-                const yes = symbol.boundingBox.vertices
-                    .map(v => v.y)
-                    .sort((a,b) => a - b);
-                const minY = yes[0];
-                const maxY = yes.slice(-1)[0];
                 const height = maxY - minY;
 
                 maxWidth = Math.max(maxWidth, width, height);
@@ -70,6 +67,38 @@ export const getFontSize = (block) => {
         }
     }
     return maxWidth;
+};
+
+/** @param {IndexedBlock} block */
+export const getBlockBounds = (block) => {
+    const vertices = [
+        ...block.boundingBox.vertices,
+        ...block.paragraphs.flatMap(p => [
+            ...p.boundingBox.vertices,
+            ...p.words.flatMap(w => [
+                ...w.boundingBox.vertices,
+                ...w.symbols.flatMap(s => [
+                    ...s.boundingBox.vertices,
+                ]),
+            ]),
+        ]),
+    ];
+    return getBounds(vertices);
+};
+
+/**
+ * @param {IndexedBlock} a
+ * @param {IndexedBlock} b
+ */
+const compareBlocks = (a, b) => {
+    const aBounds = getBlockBounds(a);
+    const bBounds = getBlockBounds(b);
+    const yDiff = aBounds.minY - bBounds.minY;
+    if (Math.abs(yDiff) > 40) {
+        return yDiff;
+    } else {
+        return bBounds.maxX - aBounds.maxX;
+    }
 };
 
 /**
@@ -104,7 +133,7 @@ const OcrDataAdapter = (ocrData) => {
                 && getFontSize(b) >= 10; // exclude small hiragana explanation of kanji
         })
         // .filter(b => b.confidence > 0.6)
-        .sort((a,b) => getEdgeDistance(a) - getEdgeDistance(b));
+        .sort(compareBlocks);
 
     return {
         blocks: blocks,

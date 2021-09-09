@@ -1,6 +1,7 @@
 <head>
     <title>Reibai-sensei translation</title>
     <link rel="icon" href="./favicon.png"/>
+    <meta charset="utf8"/>
 </head>
 
 <body>
@@ -27,6 +28,9 @@
 <!--            <textarea style="flex: 1" id="node_json_holder"></textarea>-->
         </div>
     </div>
+    <div style="display: flex; margin: 8px">
+        <textarea style="flex: 1" placeholder="Put here free-form remarks. Like '#21 Has wrong kanji recognized, correct is 寝, not 第' or 'Bubble between #6 and #13 not recognized, it says 泣かしちゃった which translates to `Tokyo is the capital of Japan`'. Based on these remarks, I'll tune the tool to standardize such corner cases" rows="5"></textarea>
+    </div>
     <p>Hey, Ngelzzz!</p>
     <p>Here is a web app I wrote for you to translate the the <a href="https://myanimelist.net/anime/10338/Honto_ni_Atta_Reibai_Sensei">Honto ni Atta! Reibai Sensei</a> manga</p>
     <p>The tool is not ready for use yet, pls wait a bit before I finish implementing it!</p>
@@ -44,12 +48,16 @@
         display: flex;
     }
     .block-polygon {
-        fill: rgba(0, 128, 0, 0.32);
-        stroke: red;
+        fill: rgba(226, 231, 234, 0.19);
+        stroke: #afafaf8c;
         cursor: pointer;
     }
+    .block-polygon:hover:not(.focused-block-polygon) {
+        stroke: #aae3e3;
+    }
     .focused-block-polygon {
-        stroke: blue;
+        stroke: #7b7be8;
+        fill: rgba(114, 236, 255, 0.28);
     }
     .sentence-block {
         margin-bottom: 16px;
@@ -79,9 +87,15 @@
         justify-content: space-between;
         align-items: end;
     }
+    .font-size-holder {
+        font-size: 8px;
+    }
+    .bubble-number-holder {
+        margin-left: 4px;
+    }
     .confidence-holder {
         cursor: help;
-        font-size: 10px;
+        font-size: 8px;
         color: grey;
         margin-left: 4px;
     }
