@@ -13,6 +13,9 @@ const gui = {
     page_input: document.getElementById('page_input') as HTMLInputElement,
     volume_input: document.getElementById('volume_input') as HTMLInputElement,
     page_select_form: document.getElementById('page_select_form')!,
+    bubbles_translations_input_form: document.getElementById('bubbles_translations_input_form') as HTMLFormElement,
+    go_to_next_page_button: document.getElementById('go_to_next_page_button')!,
+    status_message_holder: document.getElementById('status_message_holder')!,
 };
 
 type GoogleSentenceTranslation = {
@@ -29,6 +32,7 @@ export default async () => {
         googleTranslations.map(r => [r.jpn_ocr, r.eng_google])
     );
 
+    let lastFormListener: ((e: Event) => void) | null = null;
     const showSelectedPage = async () => {
         gui.annotations_svg_root.innerHTML = '';
         const page = ('000' + gui.page_input.value).slice(-3);
@@ -75,6 +79,14 @@ export default async () => {
             gui.annotations_svg_root.appendChild(polygon);
         }
 
+        const focusBubbleSvg = (ocrIndex: number | string) => {
+            [...document.querySelectorAll('.focused-block-polygon')]
+                .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
+            [...document.querySelectorAll('polygon[data-block-ocr-index="' + ocrIndex + '"]')]
+                .forEach(poly => poly.classList.toggle('focused-block-polygon', true));
+        };
+
+        // TODO: update active bubble svg when you navigate through inputs with tab
         gui.all_text_holder.innerHTML = '';
         for (const block of blocks) {
             const jpnSentence = collectBlockText(block).trimEnd();
@@ -88,12 +100,7 @@ export default async () => {
             gui.all_text_holder.appendChild(
                 Dom('div', {
                     class: 'sentence-block',
-                    onmousedown: () => {
-                        [...document.querySelectorAll('.focused-block-polygon')]
-                            .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
-                        [...document.querySelectorAll('polygon[data-block-ocr-index="' + block.ocrIndex + '"]')]
-                            .forEach(poly => poly.classList.toggle('focused-block-polygon', true));
-                    },
+                    onmousedown: () => focusBubbleSvg(block.ocrIndex),
                 }, [
                     Dom('div', {class: 'ocred-text-block'}, [
                         Dom('div', {}, jpnSentence),
@@ -109,8 +116,30 @@ export default async () => {
                 ])
             );
         }
+
+        if (lastFormListener) {
+            gui.bubbles_translations_input_form.removeEventListener('focus', lastFormListener);
+        }
+        lastFormListener = (evt: Event) => {
+            const target = evt.target as HTMLElement;
+            if (target.hasAttribute('data-block-ocr-index')) {
+                focusBubbleSvg(target.getAttribute('data-block-ocr-index')!);
+            }
+        };
+        gui.bubbles_translations_input_form.addEventListener('focus', lastFormListener, true);
+
+        const firstInput = gui.all_text_holder.querySelector('textarea[data-block-ocr-index]') as HTMLTextAreaElement;
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        gui.status_message_holder.textContent = '';
     };
 
     await showSelectedPage();
     gui.page_select_form.onchange = showSelectedPage;
+    gui.go_to_next_page_button.onclick = () => {
+        gui.page_input.value = String(+gui.page_input.value + 1);
+        showSelectedPage();
+    };
 };
