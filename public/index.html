@@ -38,6 +38,7 @@
     <p>You can navigate through bubbles by either clicking on them, or by pressing TAB button</p>
     <p>The changes are saved whe</p>
     <p>Feel free to email me if you get any questions</p>
+    <p>Don't mind the non-sequential numbering of text blocks, that's how Google Cloud Vision API arranged them =/</p>
     <p>The tool is not ready for use yet, pls wait a bit before I finish implementing it!</p>
 </body>
 
@@ -66,24 +67,30 @@
     }
     .sentence-block {
         margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        margin-right: 12px;
+        font-size: 12px;
+        flex: 1;
     }
     .sentence-block textarea {
         overflow-y: hidden;
     }
+    .remainder-cell {
+        flex: 1;
+    }
     #all_text_holder {
         margin-left: 12px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
         /* on 4k display it would be impractical to get blocks so fare from each other */
         max-width: 840px;
         white-space: pre-wrap;
         flex: 1;
-    }
-    .sentence-block {
         display: flex;
         flex-direction: column;
-        justify-content: end;
-        margin-right: 12px;
+        justify-content: center;
+    }
+    .translation-blocks-row {
+        display: flex;
     }
     input[type="number"] {
         width: 80px;
@@ -112,5 +119,9 @@
         color: #269e67;
         font-size: 36px;
         text-align: center;
+    }
+    #bubbles_translations_input_form {
+        flex: 1;
+        display: flex;
     }
 </style>

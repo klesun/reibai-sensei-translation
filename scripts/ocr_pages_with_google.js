@@ -1,5 +1,9 @@
-const vision = require('@google-cloud/vision');
-const { promises: fs } = require('fs');
+import vision from '@google-cloud/vision';
+import { promises as fs } from 'fs';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function main() {
     const client = new vision.ImageAnnotatorClient();
@@ -8,13 +12,16 @@ async function main() {
         const dirName = 'v' + ('00' + volumeNumber).slice(-2);
         const imgDirPath = __dirname + '/../public/unv/volumes/' + dirName;
         const imgNames = await fs.readdir(imgDirPath);
-        const ocredDirPath = __dirname + '/../public/assets/ocred_volumes/' + dirName;
+        const ocredDirPath = __dirname + '/../public/assets/ocred_volumes_with_language_hints/' + dirName;
         await fs.mkdir(ocredDirPath, {recursive: true});
         for (const imgName of imgNames) {
             const imgPath = imgDirPath + '/' + imgName;
             const ocrPath = ocredDirPath + '/' + imgName + '.json';
             console.log(imgPath);
-            const response = await client.documentTextDetection(imgPath);
+            const response = await client.documentTextDetection({
+                image: { source: { filename: imgPath } },
+                imageContext: {"languageHints": ["ja"]},
+            });
             await fs.writeFile(ocrPath, JSON.stringify(response));
         }
     }

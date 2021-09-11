@@ -23,6 +23,12 @@ type GoogleSentenceTranslation = {
     eng_google: string,
 };
 
+const chunked = function*<T>(items: T[], chunkSize: number): Generator<T[]> {
+    for (let i = 0; i < items.length; i += chunkSize) {
+        yield items.slice(i, i + chunkSize);
+    }
+};
+
 export default async () => {
     const googleTranslationsPath = './unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath).then(rs => rs.json());
@@ -86,34 +92,46 @@ export default async () => {
                 .forEach(poly => poly.classList.toggle('focused-block-polygon', true));
         };
 
-        // TODO: update active bubble svg when you navigate through inputs with tab
         gui.all_text_holder.innerHTML = '';
-        for (const block of blocks) {
-            const jpnSentence = collectBlockText(block).trimEnd();
-            const engSentence = jpnToEng.get(jpnSentence);
+        const CELLS_PER_ROW = 3;
+        // TODO: implement arrow navigation for bubbles on image
+        for (const rowBlocks of chunked(blocks, CELLS_PER_ROW)) {
+            const blockCells = rowBlocks.map(block => {
+                const jpnSentence = collectBlockText(block).trimEnd();
+                const engSentence = jpnToEng.get(jpnSentence);
 
-            const textarea = Dom('textarea', {
-                type: 'text',
-                placeholder: engSentence || '', rows: 2,
-                'data-block-ocr-index': block.ocrIndex,
-            });
-            gui.all_text_holder.appendChild(
-                Dom('div', {
+                const textarea = Dom('textarea', {
+                    type: 'text',
+                    placeholder: engSentence || '', rows: 3,
+                    'data-block-ocr-index': block.ocrIndex,
+                });
+                return Dom('div', {
                     class: 'sentence-block',
                     onmousedown: () => focusBubbleSvg(block.ocrIndex),
                 }, [
+                    Dom('div', {style: 'flex: 1'}),
                     Dom('div', {class: 'ocred-text-block'}, [
                         Dom('div', {}, jpnSentence),
                         Dom('div', {style: 'display: flex; align-items: end'}, [
                             Dom('div', {}, [
                                 Dom('div', {class: 'font-size-holder'}, getFontSize(block) + 'px'),
-                                Dom('div', {class: 'confidence-holder', title: 'Recognized Text Confidence'}, block.confidence.toFixed(2)),
+                                Dom('div', {
+                                    class: 'confidence-holder',
+                                    title: 'Recognized Text Confidence'
+                                }, block.confidence.toFixed(2)),
                             ]),
                             Dom('div', {class: 'bubble-number-holder'}, '#' + block.ocrIndex),
                         ]),
                     ]),
                     textarea,
-                ])
+                ]);
+            });
+            const remainderCells = [];
+            for (let i = 0; i < CELLS_PER_ROW - blockCells.length; ++i) {
+                remainderCells.push(Dom('div', {class: 'remainder-cell'}));
+            }
+            gui.all_text_holder.appendChild(
+                Dom('div', {class: 'translation-blocks-row'}, blockCells.concat(remainderCells)),
             );
         }
 

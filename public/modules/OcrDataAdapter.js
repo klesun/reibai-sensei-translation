@@ -1,4 +1,4 @@
-
+//
 /**
  * @typedef {import('./../typing/CloudVisionApi.d.ts').CloudVisionApiResponse} CloudVisionApiResponse
  * @typedef {import('./../typing/CloudVisionApi.d.ts').Paragraph} Paragraph
@@ -94,7 +94,21 @@ const compareBlocks = (a, b) => {
     const aBounds = getBlockBounds(a);
     const bBounds = getBlockBounds(b);
     const yDiff = aBounds.minY - bBounds.minY;
-    if (Math.abs(yDiff) > 40) {
+    // probably can be simplified...
+    const areOneSameRow =
+        aBounds.minY >= bBounds.minY &&
+        aBounds.minY <= bBounds.maxY ||
+        aBounds.maxY >= bBounds.minY &&
+        aBounds.maxY <= bBounds.maxY ||
+        bBounds.minY >= aBounds.minY &&
+        bBounds.minY <= aBounds.maxY ||
+        bBounds.maxY >= aBounds.minY &&
+        bBounds.maxY <= aBounds.maxY;
+    // note, it's actually results in  non-deterministic results,
+    // because we can get situation when A > B > C > A
+    // a correct approach would be to rather group row elements starting from
+    // rightest element, not just generally sort everything without context
+    if (!areOneSameRow) {
         return yDiff;
     } else {
         return bBounds.maxX - aBounds.maxX;
