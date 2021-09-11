@@ -5,8 +5,9 @@ import * as path from 'path';
 import * as http from 'http';
 import {dirname} from "path";
 import {fileURLToPath} from "url";
+import { HttpErrorBase } from "@curveball/http-errors";
+import submitUpdate from "./server/api/submitUpdate.js";
 
-const fs = fsSync.promises;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_PATH = path.resolve(__dirname, './public');
 
@@ -54,18 +55,63 @@ const serveStaticFile = async (req, res) => {
     fsSync.createReadStream(absPath).pipe(res);
 };
 
+const EXPECTED_STATUS_CODES = new Set([
+    400, 401, 403, 404,
+]);
+
+const setResponseError = (res, error) => {
+    const [statusCode, message] = error instanceof HttpErrorBase
+        ? [error.httpStatus, error.message]
+        : [520, error?.message || String(error)];
+    if (!EXPECTED_STATUS_CODES.has(statusCode)) {
+        console.error(error);
+    }
+    const messages = message.trimEnd().split('\n');
+    res.statusCode = statusCode;
+    res.statusMessage = messages[0]
+        // sanitize, as statusMessage does not allow special characters
+        .slice(0, 300).replace(/[^ -~]/g, '?');
+
+    return { messages };
+};
+
+
+const serveJson = (whenResult, res) => {
+    whenResult
+        .finally(() => res.setHeader('content-type', 'application/json'))
+        .then(result => {
+            const payload = JSON.stringify(result);
+            res.write(payload);
+        })
+        .catch(error => {
+            const { messages } = setResponseError(res, error);
+            const payload = JSON.stringify({
+                messages: messages,
+            }, null, messages.length > 0 ? 4 : undefined);
+            res.write(payload);
+        })
+        .finally(() => res.end());
+};
+
 /**
  * @param {http.IncomingMessage} req
  * @param {http.ServerResponse} res
  */
 const handleHttpRequestSafe = (req, res) => {
-    serveStaticFile(req, res).catch(exc => {
-        res.statusCode = exc?.statusCode || 500;
-        res.statusMessage = ((exc || {}).message || exc + '' || '(empty error)')
-            // sanitize, as statusMessage seems to not allow special characters
-            .slice(0, 300).replace(/[^ -~]/g, '?');
-        res.end(JSON.stringify({error: exc + '', stack: exc.stack}));
-    });
+    const { protocol } = req;
+    const url = new URL(req.url, protocol + '://' + req.headers.host);
+    if (url.pathname === '/api/submitUpdate') {
+        const whenResult = Promise.resolve(req).then(submitUpdate);
+        serveJson(whenResult, res);
+    } else {
+        serveStaticFile(req, res).catch(exc => {
+            res.statusCode = exc?.statusCode || 500;
+            res.statusMessage = ((exc || {}).message || exc + '' || '(empty error)')
+                // sanitize, as statusMessage seems to not allow special characters
+                .slice(0, 300).replace(/[^ -~]/g, '?');
+            res.end(JSON.stringify({error: exc + '', stack: exc.stack}));
+        });
+    }
 };
 
 const PORT = 36418;

@@ -3,6 +3,9 @@ import {Svg, Dom} from "./modules/Dom.js";
 import {collectBlockText, getBlockBounds, getFontSize} from "./modules/OcrDataAdapter.js";
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
 import {CloudVisionApiResponse, IndexedBlock, Vertex} from "./typing/CloudVisionApi.d";
+import Api from "./modules/Api";
+import {TranslationTransactionBase} from "./modules/Api";
+import {TranslationTransaction} from "./modules/Api";
 
 const gui = {
     annotations_svg_root: document.getElementById('annotations_svg_root')!,
@@ -29,9 +32,67 @@ const chunked = function*<T>(items: T[], chunkSize: number): Generator<T[]> {
     }
 };
 
-export default async () => {
+const BUBBLE_TRANSLATION = 'BUBBLE_TRANSLATION';
+
+const makeLocalKey = (tx: TranslationTransaction) => {
+    return BUBBLE_TRANSLATION + '_' + JSON.stringify([
+        tx.volumeIndex, tx.pageIndex, tx.ocrBubbleIndex,
+    ])
+};
+
+const prepareInitialData = async (rs: Response) => {
+    const dataStr = await rs.text();
+    const transactions: TranslationTransaction[] = JSON
+        .parse(dataStr + 'null]').slice(0, -1);
+    for (let i = 0; i < window.localStorage.length; ++i) {
+        const key = window.localStorage.key(i);
+        if (key!.startsWith(BUBBLE_TRANSLATION + '_')) {
+            const tx: TranslationTransaction = JSON.parse(window.localStorage.getItem(key!)!);
+            transactions.push(tx);
+        }
+    }
+    transactions.sort((a,b) => {
+        return new Date(a.sentAt).getTime()
+            - new Date(b.sentAt).getTime();
+    });
+    const mapping: Record<number, Record<number, Record<number, TranslationTransaction>>> = {};
+    const setEng = (tx: TranslationTransaction) => {
+        mapping[tx.volumeIndex] = mapping[tx.volumeIndex] || {};
+        mapping[tx.volumeIndex][tx.pageIndex] = mapping[tx.volumeIndex][tx.pageIndex] || {};
+        mapping[tx.volumeIndex][tx.pageIndex][tx.ocrBubbleIndex] = tx;
+    };
+    transactions.forEach(setEng);
+    return {
+        getEng: (tx: TranslationTransactionBase): string | undefined => {
+            if (tx.volumeIndex in mapping &&
+                tx.pageIndex in mapping[tx.volumeIndex] &&
+                tx.ocrBubbleIndex in mapping[tx.volumeIndex][tx.pageIndex]
+            ) {
+                return mapping[tx.volumeIndex][tx.pageIndex][tx.ocrBubbleIndex].eng_human;
+            } else {
+                return undefined;
+            }
+        },
+        setEng: (tx: TranslationTransaction) => {
+            setEng(tx);
+            // just to be safe in case some server transactions fail
+            const localKey = makeLocalKey(tx);
+            window.localStorage.setItem(localKey, JSON.stringify(tx));
+            Api.submitUpdate({ transactions: [tx] })
+                .catch(error => {
+                    const msg = 'Could not submit your update at #' + tx.ocrBubbleIndex +
+                        ' to server. Your change was stored offline for now... ' + String(error).slice(0, 60);
+                    document.body.setAttribute('data-status', 'ERROR');
+                    gui.status_message_holder.textContent = msg;
+                });
+        },
+    };
+};
+
+export default async (whenInitialProgressDataStr: Promise<Response>) => {
     const googleTranslationsPath = './unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath).then(rs => rs.json());
+    const whenInitialData = whenInitialProgressDataStr.then(prepareInitialData);
 
     const googleTranslations: GoogleSentenceTranslation[] = await whenGoogleTranslations;
     const jpnToEng = new Map(
@@ -41,12 +102,14 @@ export default async () => {
     let lastFormListener: ((e: Event) => void) | null = null;
     const showSelectedPage = async () => {
         gui.annotations_svg_root.innerHTML = '';
-        const page = ('000' + gui.page_input.value).slice(-3);
-        const volume = ('00' + gui.volume_input.value).slice(-2);
+        const pageIndex = +gui.page_input.value;
+        const volumeIndex = +gui.volume_input.value;
+        const pageFileName = ('000' + pageIndex).slice(-3);
+        const volumeDirName = ('00' + volumeIndex).slice(-2);
 
-        gui.current_page_img.setAttribute('src', "./unv/volumes/v" + volume + "/" + page + ".jpg");
+        gui.current_page_img.setAttribute('src', "./unv/volumes/v" + volumeDirName + "/" + pageFileName + ".jpg");
 
-        const jsonPath = './assets/ocred_volumes/v' + volume + '/' + page + '.jpg.json';
+        const jsonPath = './assets/ocred_volumes/v' + volumeDirName + '/' + pageFileName + '.jpg.json';
         const whenOcrData = fetch(jsonPath).then(rs => rs.json());
 
         const jsonData: CloudVisionApiResponse = await whenOcrData;
@@ -94,16 +157,42 @@ export default async () => {
 
         gui.all_text_holder.innerHTML = '';
         const CELLS_PER_ROW = 3;
+        // TODO: implement saving entered translator notes
         // TODO: implement arrow navigation for bubbles on image
         for (const rowBlocks of chunked(blocks, CELLS_PER_ROW)) {
             const blockCells = rowBlocks.map(block => {
                 const jpnSentence = collectBlockText(block).trimEnd();
                 const engSentence = jpnToEng.get(jpnSentence);
 
+                const txBase = {
+                    volumeIndex,
+                    pageIndex,
+                    ocrBubbleIndex: block.ocrIndex,
+                    jpn_ocr: jpnSentence,
+                } as const;
+                let lastValue = '';
                 const textarea = Dom('textarea', {
                     type: 'text',
                     placeholder: engSentence || '', rows: 3,
                     'data-block-ocr-index': block.ocrIndex,
+                    onblur: (evt: Event) => {
+                        if (lastValue !== textarea.value) {
+                            lastValue = textarea.value;
+                            const tx: TranslationTransaction = {
+                                ...txBase,
+                                eng_human: lastValue,
+                                sentAt: new Date().toISOString(),
+                            };
+                            whenInitialData.then(data => data.setEng(tx));
+                        }
+                    },
+                });
+                whenInitialData.then(data => {
+                    const lastTranslation = data.getEng(txBase);
+                    if (lastTranslation) {
+                        textarea.value = lastTranslation + textarea.value;
+                        lastValue = textarea.value;
+                    }
                 });
                 return Dom('div', {
                     class: 'sentence-block',
@@ -151,7 +240,13 @@ export default async () => {
             firstInput.focus();
         }
 
-        gui.status_message_holder.textContent = '';
+        whenInitialData.then(() => {
+            document.body.setAttribute('data-status', 'READY');
+            gui.status_message_holder.textContent = '';
+        }).catch(error => {
+            document.body.setAttribute('data-status', 'ERROR');
+            gui.status_message_holder.textContent = 'Failed to restore the last progress - ' + error;
+        });
     };
 
     await showSelectedPage();

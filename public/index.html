@@ -4,11 +4,11 @@
     <meta charset="utf8"/>
 </head>
 
-<body>
+<body data-status="LOADING">
     <div id="status_message_holder">Loading, please wait...</div>
     <div class="split-view">
         <div style="position: relative">
-            <img id="current_page_img"/>
+            <img id="current_page_img" style="min-width: 685px; min-height: 1024px"/>
             <svg id="annotations_svg_root" style="position: absolute; left: 0" width="685" height="1024"></svg>
         </div>
         <div style="flex: 1; display: flex; flex-direction: column">
@@ -44,8 +44,9 @@
 
 <script type="module">
     import {loadModule} from 'https://klesun.github.io/ts-browser/src/ts-browser.js';
+    const whenInitialProgressDataStr = fetch('./assets/translation_update_transactions.json');
     loadModule('./index.ts')
-        .then(indexModule => indexModule.default())
+        .then(indexModule => indexModule.default(whenInitialProgressDataStr))
         .catch(error => alert('Script execution failed - ' + error));
 </script>
 
@@ -115,13 +116,23 @@
     textarea::placeholder {
         color: #c2c2c2;
     }
-    #status_message_holder {
+    body[data-status="LOADING"] #status_message_holder {
         color: #269e67;
         font-size: 36px;
+        text-align: center;
+    }
+    body[data-status="LOADING"] textarea {
+        background-color: grey;
+        pointer-events: none;
+    }
+    body[data-status="ERROR"] #status_message_holder {
+        color: #bd3a04;
+        font-size: 18px;
         text-align: center;
     }
     #bubbles_translations_input_form {
         flex: 1;
         display: flex;
     }
+
 </style>
