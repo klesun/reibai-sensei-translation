@@ -40,7 +40,7 @@ const makeLocalKey = (tx: TranslationTransaction) => {
     ])
 };
 
-const prepareInitialData = async (rs: Response) => {
+const prepareInitialData = async (rs: Response, api: Api) => {
     const dataStr = await rs.text();
     const transactions: TranslationTransaction[] = JSON
         .parse(dataStr + 'null]').slice(0, -1);
@@ -78,10 +78,16 @@ const prepareInitialData = async (rs: Response) => {
             // just to be safe in case some server transactions fail
             const localKey = makeLocalKey(tx);
             window.localStorage.setItem(localKey, JSON.stringify(tx));
-            Api.submitUpdate({ transactions: [tx] })
+            api.submitUpdate({ transactions: [tx] })
+                .then(rsData => {
+                    const msg = 'Submitted your update at #' + tx.ocrBubbleIndex +
+                        ' to server: ' + rsData.status;
+                    document.body.setAttribute('data-status', 'SUCCESS');
+                    gui.status_message_holder.textContent = msg;
+                })
                 .catch(error => {
                     const msg = 'Could not submit your update at #' + tx.ocrBubbleIndex +
-                        ' to server. Your change was stored offline for now... ' + String(error).slice(0, 60);
+                        ' to server. Your change was stored offline for now... REASON: ' + String(error).slice(0, 60);
                     document.body.setAttribute('data-status', 'ERROR');
                     gui.status_message_holder.textContent = msg;
                 });
@@ -89,10 +95,53 @@ const prepareInitialData = async (rs: Response) => {
     };
 };
 
+/** @cudos https://stackoverflow.com/a/50767210/2750743 */
+function bufferToHex (buffer: ArrayBuffer) {
+    return [...new Uint8Array(buffer)]
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+const getApiToken = async (): Promise<string> => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    if (urlSearchParams.has('api_token')) {
+        window.localStorage.setItem('REIBAI_API_TOKEN', urlSearchParams.get('api_token')!);
+    } else if (!window.localStorage.getItem('REIBAI_API_TOKEN')) {
+        const msg = 'Missing api_token in the URL. It should have been included in ' +
+            'the link I gave you, unless I was a potato... Email me if you need help.';
+        throw new Error(msg);
+    }
+    if (crypto.subtle) { // can check if we are in a secure context
+        const passwordBytes = new TextEncoder().encode(
+            window.localStorage.getItem('REIBAI_API_TOKEN')!
+        );
+        const hash = await crypto.subtle
+            .digest('SHA-256', passwordBytes)
+            .then(bufferToHex);
+        if (hash !== 'f9979e5a7bb85ca891ee8819b955a906f68b9a589d9d224dae6f359b9e711c5f') {
+            const msg = 'Wrong api_token in the URL. Possibly some characters got ' +
+                'missing during a copy-paste or smth. Email me if you need help.';
+            throw new Error(msg);
+        }
+    }
+    return window.localStorage.getItem('REIBAI_API_TOKEN')!;
+};
+
 export default async (whenInitialProgressDataStr: Promise<Response>) => {
+    let api_token: string;
+    try {
+        api_token = await getApiToken();
+    } catch (error: unknown) {
+        document.body.setAttribute('data-status', 'ERROR');
+        gui.status_message_holder.textContent =
+            error instanceof Error ? error.message : String(error);
+        return;
+    }
+    const api = Api({api_token: api_token});
+
     const googleTranslationsPath = './unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath).then(rs => rs.json());
-    const whenInitialData = whenInitialProgressDataStr.then(prepareInitialData);
+    const whenInitialData = whenInitialProgressDataStr.then(rs => prepareInitialData(rs, api));
 
     const googleTranslations: GoogleSentenceTranslation[] = await whenGoogleTranslations;
     const jpnToEng = new Map(
@@ -169,12 +218,14 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
                     pageIndex,
                     ocrBubbleIndex: block.ocrIndex,
                     jpn_ocr: jpnSentence,
+                    bounds: getBlockBounds(block),
                 } as const;
                 let lastValue = '';
                 const textarea = Dom('textarea', {
                     type: 'text',
                     placeholder: engSentence || '', rows: 3,
                     'data-block-ocr-index': block.ocrIndex,
+                    // TODO: check if blur triggers when you close browser
                     onblur: (evt: Event) => {
                         if (lastValue !== textarea.value) {
                             lastValue = textarea.value;
@@ -239,14 +290,6 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
         if (firstInput) {
             firstInput.focus();
         }
-
-        whenInitialData.then(() => {
-            document.body.setAttribute('data-status', 'READY');
-            gui.status_message_holder.textContent = '';
-        }).catch(error => {
-            document.body.setAttribute('data-status', 'ERROR');
-            gui.status_message_holder.textContent = 'Failed to restore the last progress - ' + error;
-        });
     };
 
     await showSelectedPage();
@@ -255,4 +298,12 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
         gui.page_input.value = String(+gui.page_input.value + 1);
         showSelectedPage();
     };
+
+    whenInitialData.then(() => {
+        document.body.setAttribute('data-status', 'READY');
+        gui.status_message_holder.textContent = 'Ready for input';
+    }).catch(error => {
+        document.body.setAttribute('data-status', 'INITIALIZATION_ERROR');
+        gui.status_message_holder.textContent = 'Failed to restore the last progress - ' + error;
+    });
 };

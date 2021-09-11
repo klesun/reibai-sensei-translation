@@ -23,6 +23,16 @@ export type TranslationTransaction = TranslationTransactionBase & {
      */
     sentAt: string,
     /**
+     * the position of the text belonging to this bubble on the image, the
+     * size of all images in all volumes is expected to be 685px x 1024px
+     */
+    bounds: {
+        minX: number,
+        minY: number,
+        maxX: number,
+        maxY: number,
+    }
+    /**
      * the identifier of the person who submitted this translation, to distinct my
      * rubbish guesses of the meaning and tests from the real translation made by Ngelzzz
      * added by server
@@ -48,13 +58,22 @@ const parseResponse = (rs: Response) => rs.status !== 200
     ? Promise.reject(rs.statusText)
     : rs.json();
 
-const post = (route: string, params: Record<string, unknown>) => {
-    return fetch(route, {
-        method: 'POST',
-        body: JSON.stringify(params),
-    }).then(parseResponse);
+const Api = ({api_token}: {api_token: string}) => {
+    const post = (route: string, params: Record<string, unknown>) => {
+        return fetch(route, {
+            method: 'POST',
+            body: JSON.stringify(params),
+            headers: {
+                'authorization': 'Basic ' + btoa('translator:' + api_token),
+            },
+        }).then(parseResponse);
+    };
+
+    return {
+        submitUpdate: (params: submitUpdate_rq) => post('/api/submitUpdate', params),
+    };
 };
 
-export default {
-    submitUpdate: (params: submitUpdate_rq) => post('/api/submitUpdate', params),
-};
+type Api = ReturnType<typeof Api>;
+
+export default Api;

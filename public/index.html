@@ -116,19 +116,21 @@
     textarea::placeholder {
         color: #c2c2c2;
     }
-    body[data-status="LOADING"] #status_message_holder {
-        color: #269e67;
-        font-size: 36px;
+    #status_message_holder {
+        font-size: 12px;
+        padding: 3px;
         text-align: center;
     }
-    body[data-status="LOADING"] textarea {
+    body[data-status="LOADING"] #status_message_holder { color: #4600ce; }
+    body[data-status="ERROR"] #status_message_holder,
+    body[data-status="INITIALIZATION_ERROR"] #status_message_holder { color: #bd3a04; }
+    body[data-status="READY"] #status_message_holder { color: #78741e; }
+    body[data-status="SUCCESS"] #status_message_holder { color: #34a95f; }
+    body[data-status="LOADING"] textarea,
+    body[data-status="INITIALIZATION_ERROR"] textarea {
+        color: lightgrey;
         background-color: grey;
         pointer-events: none;
-    }
-    body[data-status="ERROR"] #status_message_holder {
-        color: #bd3a04;
-        font-size: 18px;
-        text-align: center;
     }
     #bubbles_translations_input_form {
         flex: 1;
