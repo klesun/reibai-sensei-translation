@@ -6,7 +6,8 @@ import * as http from 'http';
 import {dirname} from "path";
 import {fileURLToPath} from "url";
 import { HttpErrorBase } from "@curveball/http-errors";
-import submitUpdate from "./server/api/submitUpdate.js";
+import submitBubbleUpdate from "./server/api/submitBubbleUpdate.js";
+import submitNoteUpdate from "./server/api/submitNoteUpdate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_PATH = path.resolve(__dirname, './public');
@@ -100,8 +101,11 @@ const serveJson = (whenResult, res) => {
 const handleHttpRequestSafe = (req, res) => {
     const { protocol } = req;
     const url = new URL(req.url, protocol + '://' + req.headers.host);
-    if (url.pathname === '/api/submitUpdate') {
-        const whenResult = Promise.resolve(req).then(submitUpdate);
+    if (url.pathname === '/api/submitBubbleUpdate') {
+        const whenResult = Promise.resolve(req).then(submitBubbleUpdate);
+        serveJson(whenResult, res);
+    } else if (url.pathname === '/api/submitNoteUpdate') {
+        const whenResult = Promise.resolve(req).then(submitNoteUpdate);
         serveJson(whenResult, res);
     } else {
         serveStaticFile(req, res).catch(exc => {

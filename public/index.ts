@@ -4,8 +4,9 @@ import {collectBlockText, getBlockBounds, getFontSize} from "./modules/OcrDataAd
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
 import {CloudVisionApiResponse, IndexedBlock, Vertex} from "./typing/CloudVisionApi.d";
 import Api from "./modules/Api";
+import {NoteTransaction, PageTransactionBase} from "./modules/Api";
 import {TranslationTransactionBase} from "./modules/Api";
-import {TranslationTransaction} from "./modules/Api";
+import {TranslationTransaction, getApiToken} from "./modules/Api";
 
 const gui = {
     annotations_svg_root: document.getElementById('annotations_svg_root')!,
@@ -19,6 +20,7 @@ const gui = {
     bubbles_translations_input_form: document.getElementById('bubbles_translations_input_form') as HTMLFormElement,
     go_to_next_page_button: document.getElementById('go_to_next_page_button')!,
     status_message_holder: document.getElementById('status_message_holder')!,
+    translator_notes_input: document.getElementById('translator_notes_input') as HTMLTextAreaElement,
 };
 
 type GoogleSentenceTranslation = {
@@ -33,17 +35,25 @@ const chunked = function*<T>(items: T[], chunkSize: number): Generator<T[]> {
 };
 
 const BUBBLE_TRANSLATION = 'BUBBLE_TRANSLATION';
+const NOTE_TRANSLATION = 'NOTE_TRANSLATION';
 
-const makeLocalKey = (tx: TranslationTransaction) => {
+const makeBubbleKey = (tx: TranslationTransaction) => {
     return BUBBLE_TRANSLATION + '_' + JSON.stringify([
-        tx.volumeIndex, tx.pageIndex, tx.ocrBubbleIndex,
+        tx.volumeNumber, tx.pageIndex, tx.ocrBubbleIndex,
+    ])
+};
+const makeNoteKey = (tx: NoteTransaction) => {
+    return NOTE_TRANSLATION + '_' + JSON.stringify([
+        tx.volumeNumber, tx.pageIndex,
     ])
 };
 
-const prepareInitialData = async (rs: Response, api: Api) => {
+const parseStreamedJson = async (rs: Response) => {
     const dataStr = await rs.text();
-    const transactions: TranslationTransaction[] = JSON
-        .parse(dataStr + 'null]').slice(0, -1);
+    return JSON.parse(dataStr + 'null]').slice(0, -1);
+};
+
+const prepareBubbleMapping = async (transactions: TranslationTransaction[], api: Api) => {
     for (let i = 0; i < window.localStorage.length; ++i) {
         const key = window.localStorage.key(i);
         if (key!.startsWith(BUBBLE_TRANSLATION + '_')) {
@@ -56,29 +66,30 @@ const prepareInitialData = async (rs: Response, api: Api) => {
             - new Date(b.sentAt).getTime();
     });
     const mapping: Record<number, Record<number, Record<number, TranslationTransaction>>> = {};
-    const setEng = (tx: TranslationTransaction) => {
-        mapping[tx.volumeIndex] = mapping[tx.volumeIndex] || {};
-        mapping[tx.volumeIndex][tx.pageIndex] = mapping[tx.volumeIndex][tx.pageIndex] || {};
-        mapping[tx.volumeIndex][tx.pageIndex][tx.ocrBubbleIndex] = tx;
+    const set = (tx: TranslationTransaction) => {
+        mapping[tx.volumeNumber] = mapping[tx.volumeNumber] || {};
+        mapping[tx.volumeNumber][tx.pageIndex] = mapping[tx.volumeNumber][tx.pageIndex] || {};
+        mapping[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex] = tx;
     };
-    transactions.forEach(setEng);
+    transactions.forEach(set);
     return {
-        getEng: (tx: TranslationTransactionBase): string | undefined => {
-            if (tx.volumeIndex in mapping &&
-                tx.pageIndex in mapping[tx.volumeIndex] &&
-                tx.ocrBubbleIndex in mapping[tx.volumeIndex][tx.pageIndex]
+        get: (tx: TranslationTransactionBase): TranslationTransaction | undefined => {
+            if (tx.volumeNumber in mapping &&
+                tx.pageIndex in mapping[tx.volumeNumber] &&
+                tx.ocrBubbleIndex in mapping[tx.volumeNumber][tx.pageIndex]
             ) {
-                return mapping[tx.volumeIndex][tx.pageIndex][tx.ocrBubbleIndex].eng_human;
+                return mapping[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex];
             } else {
                 return undefined;
             }
         },
-        setEng: (tx: TranslationTransaction) => {
-            setEng(tx);
+        set: (tx: TranslationTransaction) => {
+            set(tx);
             // just to be safe in case some server transactions fail
-            const localKey = makeLocalKey(tx);
+            const localKey = makeBubbleKey(tx);
             window.localStorage.setItem(localKey, JSON.stringify(tx));
-            api.submitUpdate({ transactions: [tx] })
+            // TODO: make a queue of actions to preserve order and for store failed actions and retry them once 30 seconds or smth
+            api.submitBubbleUpdate({ transactions: [tx] })
                 .then(rsData => {
                     const msg = 'Submitted your update at #' + tx.ocrBubbleIndex +
                         ' to server: ' + rsData.status;
@@ -95,41 +106,60 @@ const prepareInitialData = async (rs: Response, api: Api) => {
     };
 };
 
-/** @cudos https://stackoverflow.com/a/50767210/2750743 */
-function bufferToHex (buffer: ArrayBuffer) {
-    return [...new Uint8Array(buffer)]
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("");
-}
-
-const getApiToken = async (): Promise<string> => {
-    const urlSearchParams = new URLSearchParams(window.location.search);
-    if (urlSearchParams.has('api_token')) {
-        window.localStorage.setItem('REIBAI_API_TOKEN', urlSearchParams.get('api_token')!);
-    } else if (!window.localStorage.getItem('REIBAI_API_TOKEN')) {
-        const msg = 'Missing api_token in the URL. It should have been included in ' +
-            'the link I gave you, unless I was a potato... Email me if you need help.';
-        throw new Error(msg);
-    }
-    if (crypto.subtle) { // can check if we are in a secure context
-        const passwordBytes = new TextEncoder().encode(
-            window.localStorage.getItem('REIBAI_API_TOKEN')!
-        );
-        const hash = await crypto.subtle
-            .digest('SHA-256', passwordBytes)
-            .then(bufferToHex);
-        if (hash !== 'f9979e5a7bb85ca891ee8819b955a906f68b9a589d9d224dae6f359b9e711c5f' &&
-            hash !== '41e90b5d85511ce65e6e3b1a8f915c3d9c91e9d6b069f70f715d96e0c776d3de'
-        ) {
-            const msg = 'Wrong api_token in the URL. Possibly some characters got ' +
-                'missing during a copy-paste or smth. Email me if you need help.';
-            throw new Error(msg);
+const prepareNotesMapping = (transactions: NoteTransaction[], api: Api) => {
+    for (let i = 0; i < window.localStorage.length; ++i) {
+        const key = window.localStorage.key(i);
+        if (key!.startsWith(NOTE_TRANSLATION + '_')) {
+            const tx: NoteTransaction = JSON.parse(window.localStorage.getItem(key!)!);
+            transactions.push(tx);
         }
     }
-    return window.localStorage.getItem('REIBAI_API_TOKEN')!;
+    transactions.sort((a,b) => {
+        return new Date(a.sentAt).getTime()
+            - new Date(b.sentAt).getTime();
+    });
+    const mapping: Record<number, Record<number, NoteTransaction>> = {};
+    const set = (tx: NoteTransaction) => {
+        mapping[tx.volumeNumber] = mapping[tx.volumeNumber] || {};
+        mapping[tx.volumeNumber][tx.pageIndex] = tx;
+    };
+    transactions.forEach(set);
+    return {
+        get: (tx: PageTransactionBase): NoteTransaction | undefined => {
+            if (tx.volumeNumber in mapping &&
+                tx.pageIndex in mapping[tx.volumeNumber]
+            ) {
+                return mapping[tx.volumeNumber][tx.pageIndex];
+            } else {
+                return undefined;
+            }
+        },
+        set: (tx: NoteTransaction) => {
+            set(tx);
+            // just to be safe in case some server transactions fail
+            const localKey = makeNoteKey(tx);
+            window.localStorage.setItem(localKey, JSON.stringify(tx));
+            api.submitNoteUpdate({ transactions: [tx] })
+                .then(rsData => {
+                    const msg = 'Submitted your note update to server: ' + rsData.status;
+                    document.body.setAttribute('data-status', 'SUCCESS');
+                    gui.status_message_holder.textContent = msg;
+                })
+                .catch(error => {
+                    const msg = 'Could not submit your note update ' +
+                        'to server. Your change was stored offline for now... REASON: ' + String(error).slice(0, 60);
+                    document.body.setAttribute('data-status', 'ERROR');
+                    gui.status_message_holder.textContent = msg;
+                });
+        },
+    };
 };
 
-export default async (whenInitialProgressDataStr: Promise<Response>) => {
+export default async (fetchingBubbles: Promise<Response>) => {
+    const googleTranslationsPath = './unv/google_translations.json';
+    const whenGoogleTranslations = fetch(googleTranslationsPath).then(rs => rs.json());
+    const fetchingNotes = fetch('./assets/translator_notes_transactions.json');
+
     let api_token: string;
     try {
         api_token = await getApiToken();
@@ -141,9 +171,12 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
     }
     const api = Api({api_token: api_token});
 
-    const googleTranslationsPath = './unv/google_translations.json';
-    const whenGoogleTranslations = fetch(googleTranslationsPath).then(rs => rs.json());
-    const whenInitialData = whenInitialProgressDataStr.then(rs => prepareInitialData(rs, api));
+    const whenBubbleMapping = fetchingBubbles
+        .then(parseStreamedJson)
+        .then(txs => prepareBubbleMapping(txs, api));
+    const whenNoteMapping = fetchingNotes
+        .then(parseStreamedJson)
+        .then(txs => prepareNotesMapping(txs, api));
 
     const googleTranslations: GoogleSentenceTranslation[] = await whenGoogleTranslations;
     const jpnToEng = new Map(
@@ -154,9 +187,9 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
     const showSelectedPage = async () => {
         gui.annotations_svg_root.innerHTML = '';
         const pageIndex = +gui.page_input.value;
-        const volumeIndex = +gui.volume_input.value;
+        const volumeNumber = +gui.volume_input.value;
         const pageFileName = ('000' + pageIndex).slice(-3);
-        const volumeDirName = ('00' + volumeIndex).slice(-2);
+        const volumeDirName = ('00' + volumeNumber).slice(-2);
 
         gui.current_page_img.setAttribute('src', "./unv/volumes/v" + volumeDirName + "/" + pageFileName + ".jpg");
 
@@ -216,7 +249,7 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
                 const engSentence = jpnToEng.get(jpnSentence);
 
                 const txBase = {
-                    volumeIndex,
+                    volumeNumber,
                     pageIndex,
                     ocrBubbleIndex: block.ocrIndex,
                     jpn_ocr: jpnSentence,
@@ -236,14 +269,14 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
                                 eng_human: lastValue,
                                 sentAt: new Date().toISOString(),
                             };
-                            whenInitialData.then(data => data.setEng(tx));
+                            whenBubbleMapping.then(data => data.set(tx));
                         }
                     },
                 });
-                whenInitialData.then(data => {
-                    const lastTranslation = data.getEng(txBase);
+                whenBubbleMapping.then(data => {
+                    const lastTranslation = data.get(txBase);
                     if (lastTranslation) {
-                        textarea.value = lastTranslation + textarea.value;
+                        textarea.value = lastTranslation.eng_human + textarea.value;
                         lastValue = textarea.value;
                     }
                 });
@@ -288,6 +321,22 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
         };
         gui.bubbles_translations_input_form.addEventListener('focus', lastFormListener, true);
 
+        const noteMapping = await whenNoteMapping;
+        const lastNote = noteMapping.get({volumeNumber, pageIndex});
+        let lastNoteValue = lastNote ? lastNote.text : '';
+        gui.translator_notes_input.value = lastNoteValue;
+        gui.translator_notes_input.onblur = () => {
+            if (lastNoteValue !== gui.translator_notes_input.value) {
+                lastNoteValue = gui.translator_notes_input.value;
+                const tx: NoteTransaction = {
+                    volumeNumber, pageIndex,
+                    text: lastNoteValue,
+                    sentAt: new Date().toISOString(),
+                };
+                noteMapping.set(tx);
+            }
+        };
+
         const firstInput = gui.all_text_holder.querySelector('textarea[data-block-ocr-index]') as HTMLTextAreaElement;
         if (firstInput) {
             firstInput.focus();
@@ -301,7 +350,7 @@ export default async (whenInitialProgressDataStr: Promise<Response>) => {
         showSelectedPage();
     };
 
-    whenInitialData.then(() => {
+    whenBubbleMapping.then(() => {
         document.body.setAttribute('data-status', 'READY');
         gui.status_message_holder.textContent = 'Ready for input';
     }).catch(error => {

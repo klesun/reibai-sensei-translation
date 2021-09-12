@@ -1,9 +1,12 @@
 
-export type TranslationTransactionBase = {
-    /** 0-based */
-    volumeIndex: number,
+export type PageTransactionBase = {
+    /** 1-based, should rename to number... */
+    volumeNumber: number,
     /** 0-based */
     pageIndex: number,
+};
+
+export type TranslationTransactionBase = PageTransactionBase & {
     /**
      * 0-based, the order in which Google Vision API returned the blocks,
      * it usually goes from top to bottom and then from right to left which _differs_ from order in which
@@ -12,16 +15,25 @@ export type TranslationTransactionBase = {
     ocrBubbleIndex: number,
 };
 
-export type TranslationTransaction = TranslationTransactionBase & {
-    /** just for consistency check, the OCRed Japanese text from the bubble */
-    jpn_ocr: string,
-    /** the English translation of the text in the bubble, may be overridden by newer transactions */
-    eng_human: string,
+type TransactionCreationData = {
     /**
      * iso format datetime string, would be needed if server was down for
      * some time to restore the chronological order from local storage
      */
     sentAt: string,
+    /**
+     * the identifier of the person who submitted this translation, to distinct my
+     * rubbish guesses of the meaning and tests from the real translation made by Ngelzzz
+     * added by server
+     */
+    author?: string,
+};
+
+export type TranslationTransaction = TranslationTransactionBase & TransactionCreationData & {
+    /** just for consistency check, the OCRed Japanese text from the bubble */
+    jpn_ocr: string,
+    /** the English translation of the text in the bubble, may be overridden by newer transactions */
+    eng_human: string,
     /**
      * the position of the text belonging to this bubble on the image, the
      * size of all images in all volumes is expected to be 685px x 1024px
@@ -32,12 +44,6 @@ export type TranslationTransaction = TranslationTransactionBase & {
         maxX: number,
         maxY: number,
     }
-    /**
-     * the identifier of the person who submitted this translation, to distinct my
-     * rubbish guesses of the meaning and tests from the real translation made by Ngelzzz
-     * added by server
-     */
-    author?: string,
     /**
      * on optional correction of the OCRed Japanese text, would be nice for
      * consistency, but on practice probably won't be of much use to anyone...
@@ -50,13 +56,55 @@ export type TranslationTransaction = TranslationTransactionBase & {
     note?: string,
 };
 
-type submitUpdate_rq = {
+export type NoteTransaction = PageTransactionBase & TransactionCreationData & {
+    text: string,
+}
+
+type submitBubbleUpdate_rq = {
     transactions: TranslationTransaction[],
+};
+
+type submitNoteUpdate_rq = {
+    transactions: NoteTransaction[],
 };
 
 const parseResponse = (rs: Response) => rs.status !== 200
     ? Promise.reject(rs.statusText)
     : rs.json();
+
+/** @cudos https://stackoverflow.com/a/50767210/2750743 */
+function bufferToHex (buffer: ArrayBuffer) {
+    return [...new Uint8Array(buffer)]
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+export const getApiToken = async (): Promise<string> => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    if (urlSearchParams.has('api_token')) {
+        window.localStorage.setItem('REIBAI_API_TOKEN', urlSearchParams.get('api_token')!);
+    } else if (!window.localStorage.getItem('REIBAI_API_TOKEN')) {
+        const msg = 'Missing api_token in the URL. It should have been included in ' +
+            'the link I gave you, unless I was a potato... Email me if you need help.';
+        throw new Error(msg);
+    }
+    if (crypto.subtle) { // can check if we are in a secure context
+        const passwordBytes = new TextEncoder().encode(
+            window.localStorage.getItem('REIBAI_API_TOKEN')!
+        );
+        const hash = await crypto.subtle
+            .digest('SHA-256', passwordBytes)
+            .then(bufferToHex);
+        if (hash !== 'f9979e5a7bb85ca891ee8819b955a906f68b9a589d9d224dae6f359b9e711c5f' &&
+            hash !== '41e90b5d85511ce65e6e3b1a8f915c3d9c91e9d6b069f70f715d96e0c776d3de'
+        ) {
+            const msg = 'Wrong api_token in the URL. Possibly some characters got ' +
+                'missing during a copy-paste or smth. Email me if you need help.';
+            throw new Error(msg);
+        }
+    }
+    return window.localStorage.getItem('REIBAI_API_TOKEN')!;
+};
 
 const Api = ({api_token}: {api_token: string}) => {
     const post = (route: string, params: Record<string, unknown>) => {
@@ -70,7 +118,8 @@ const Api = ({api_token}: {api_token: string}) => {
     };
 
     return {
-        submitUpdate: (params: submitUpdate_rq) => post('/api/submitUpdate', params),
+        submitBubbleUpdate: (params: submitBubbleUpdate_rq) => post('/api/submitBubbleUpdate', params),
+        submitNoteUpdate: (params: submitNoteUpdate_rq) => post('/api/submitNoteUpdate', params),
     };
 };
 
