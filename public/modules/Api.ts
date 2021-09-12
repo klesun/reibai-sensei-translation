@@ -64,7 +64,7 @@ const Api = ({api_token}: {api_token: string}) => {
             method: 'POST',
             body: JSON.stringify(params),
             headers: {
-                'authorization': 'Basic ' + btoa('translator:' + api_token),
+                'authorization': 'Bearer ' + btoa(api_token),
             },
         }).then(parseResponse);
     };

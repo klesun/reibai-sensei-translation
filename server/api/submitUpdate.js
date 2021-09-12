@@ -2,7 +2,7 @@ import {readJson} from "../utils/Http.js";
 import { promises as fs } from 'fs';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { Unauthorized } from '@curveball/http-errors';
+import { Unauthorized, Forbidden } from '@curveball/http-errors';
 import crypto from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -10,28 +10,25 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const TARGET_PATH = __dirname + '/../../public/assets/translation_update_transactions.json';
 
 const AUTHORIZED_USERS = {
-    'translator': 'f9979e5a7bb85ca891ee8819b955a906f68b9a589d9d224dae6f359b9e711c5f',
+    'f9979e5a7bb85ca891ee8819b955a906f68b9a589d9d224dae6f359b9e711c5f': 'ngelzzz',
+    '41e90b5d85511ce65e6e3b1a8f915c3d9c91e9d6b069f70f715d96e0c776d3de': 'klesun',
 };
 
-const isAuthorized = (authorizationHeader) => {
+const getAuthorizedUser = (authorizationHeader) => {
     if (!authorizationHeader) {
-        return false;
+        return null;
     }
-    const match = authorizationHeader.match(/^Basic\s+(\S+)\s*$/i);
+    const match = authorizationHeader.match(/^Bearer\s+(\S+)\s*$/i);
     if (!match) {
-        return false;
+        return null;
     }
-    const [username, password] = Buffer
+    const password = Buffer
         .from(match[1], 'base64')
-        .toString().split(':');
-    const expectedSha = AUTHORIZED_USERS[username];
-    if (!expectedSha) {
-        return false;
-    }
+        .toString();
     const passwordSha = crypto.createHash('sha256')
         .update(password).digest('hex');
 
-    return expectedSha === passwordSha;
+    return AUTHORIZED_USERS[passwordSha] || undefined;
 };
 
 /**
@@ -39,15 +36,20 @@ const isAuthorized = (authorizationHeader) => {
  * @return {Promise<object>}
  */
 const submitUpdate = async (req) => {
-    if (!isAuthorized(req.headers['authorization'])) {
+    let userName = getAuthorizedUser(req.headers['authorization']);
+    if (!userName) {
         throw new Unauthorized('Wrong API token supplied, please check your URL');
     }
     const params = await readJson(req);
-    const replyIp = req.socket.remoteAddress.replace(/^::ffff:/, '');
-    const headerIp = replyIp !== '127.0.0.1'
-        ? replyIp
+    let replyIp = req.socket.remoteAddress.replace(/^::ffff:/, '');
+    replyIp = replyIp !== '127.0.0.1' ? replyIp
         // x-forwarded-for should be enabled in the proxy
         : req.headers['x-forwarded-for'] || null;
+    if (replyIp === '83.99.188.115' && userName !== 'klesun') {
+        // since I know Ngelzzz's password, should add an extra check by
+        // ip, to avoid accidentally mixing my alterations with hers
+        throw new Forbidden('Don\'t try to impersonate people, klesun!.');
+    }
     const newTransactionsStr = params.transactions
         .map(tx => JSON.stringify({
             volumeIndex: tx.volumeIndex,
@@ -57,7 +59,7 @@ const submitUpdate = async (req) => {
             /** just for consistency check */
             jpn_ocr: tx.jpn_ocr,
             bounds: tx.bounds,
-            author: headerIp,
+            author: userName,
             sentAt: tx.sentAt,
             ...!tx.jpn_human ? {} : {
                 jpn_human: tx.jpn_human || undefined,
