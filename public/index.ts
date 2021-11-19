@@ -2,7 +2,7 @@
 import {Svg, Dom} from "./modules/Dom.js";
 import {collectBlockText, getBlockBounds, getFontSize} from "./modules/OcrDataAdapter.js";
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
-import {CloudVisionApiResponse, IndexedBlock, Vertex} from "./typing/CloudVisionApi.d";
+import {CloudVisionApiResponse, IndexedBlock} from "./typing/CloudVisionApi.d";
 import Api from "./modules/Api";
 import {NoteTransaction, PageTransactionBase} from "./modules/Api";
 import {TranslationTransactionBase} from "./modules/Api";
@@ -21,6 +21,8 @@ const gui = {
     go_to_next_page_button: document.getElementById('go_to_next_page_button')!,
     status_message_holder: document.getElementById('status_message_holder')!,
     translator_notes_input: document.getElementById('translator_notes_input') as HTMLTextAreaElement,
+    words_translated_counter: document.getElementById('words_translated_counter')!,
+    money_earned_counter: document.getElementById('money_earned_counter')!,
 };
 
 type GoogleSentenceTranslation = {
@@ -53,7 +55,10 @@ const parseStreamedJson = async (rs: Response) => {
     return JSON.parse(dataStr + 'null]').slice(0, -1);
 };
 
-const prepareBubbleMapping = async (transactions: TranslationTransaction[], api: Api) => {
+type BubbleMatrix = Record<number, Record<number, Record<number, TranslationTransaction>>>;
+type NoteMatrix = Record<number, Record<number, NoteTransaction>>;
+
+const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) => {
     for (let i = 0; i < window.localStorage.length; ++i) {
         const key = window.localStorage.key(i);
         if (key!.startsWith(BUBBLE_TRANSLATION + '_')) {
@@ -65,20 +70,21 @@ const prepareBubbleMapping = async (transactions: TranslationTransaction[], api:
         return new Date(a.sentAt).getTime()
             - new Date(b.sentAt).getTime();
     });
-    const mapping: Record<number, Record<number, Record<number, TranslationTransaction>>> = {};
+    const matrix: BubbleMatrix = {};
     const set = (tx: TranslationTransaction) => {
-        mapping[tx.volumeNumber] = mapping[tx.volumeNumber] || {};
-        mapping[tx.volumeNumber][tx.pageIndex] = mapping[tx.volumeNumber][tx.pageIndex] || {};
-        mapping[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex] = tx;
+        matrix[tx.volumeNumber] = matrix[tx.volumeNumber] || {};
+        matrix[tx.volumeNumber][tx.pageIndex] = matrix[tx.volumeNumber][tx.pageIndex] || {};
+        matrix[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex] = tx;
     };
     transactions.forEach(set);
     return {
+        getMatrix: () => matrix,
         get: (tx: TranslationTransactionBase): TranslationTransaction | undefined => {
-            if (tx.volumeNumber in mapping &&
-                tx.pageIndex in mapping[tx.volumeNumber] &&
-                tx.ocrBubbleIndex in mapping[tx.volumeNumber][tx.pageIndex]
+            if (tx.volumeNumber in matrix &&
+                tx.pageIndex in matrix[tx.volumeNumber] &&
+                tx.ocrBubbleIndex in matrix[tx.volumeNumber][tx.pageIndex]
             ) {
-                return mapping[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex];
+                return matrix[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex];
             } else {
                 return undefined;
             }
@@ -105,6 +111,7 @@ const prepareBubbleMapping = async (transactions: TranslationTransaction[], api:
         },
     };
 };
+type BubbleMapping = ReturnType<typeof prepareBubbleMapping>;
 
 const prepareNotesMapping = (transactions: NoteTransaction[], api: Api) => {
     for (let i = 0; i < window.localStorage.length; ++i) {
@@ -118,18 +125,19 @@ const prepareNotesMapping = (transactions: NoteTransaction[], api: Api) => {
         return new Date(a.sentAt).getTime()
             - new Date(b.sentAt).getTime();
     });
-    const mapping: Record<number, Record<number, NoteTransaction>> = {};
+    const matrix: NoteMatrix = {};
     const set = (tx: NoteTransaction) => {
-        mapping[tx.volumeNumber] = mapping[tx.volumeNumber] || {};
-        mapping[tx.volumeNumber][tx.pageIndex] = tx;
+        matrix[tx.volumeNumber] = matrix[tx.volumeNumber] || {};
+        matrix[tx.volumeNumber][tx.pageIndex] = tx;
     };
     transactions.forEach(set);
     return {
+        getMatrix: () => matrix,
         get: (tx: PageTransactionBase): NoteTransaction | undefined => {
-            if (tx.volumeNumber in mapping &&
-                tx.pageIndex in mapping[tx.volumeNumber]
+            if (tx.volumeNumber in matrix &&
+                tx.pageIndex in matrix[tx.volumeNumber]
             ) {
-                return mapping[tx.volumeNumber][tx.pageIndex];
+                return matrix[tx.volumeNumber][tx.pageIndex];
             } else {
                 return undefined;
             }
@@ -153,6 +161,32 @@ const prepareNotesMapping = (transactions: NoteTransaction[], api: Api) => {
                 });
         },
     };
+};
+type NoteMapping = ReturnType<typeof prepareNotesMapping>;
+
+const getAllTranslatedWords = (bubbles: BubbleMapping, notes: NoteMapping) => {
+    let allTranslatedWords = [];
+    for (const pages of Object.values(bubbles.getMatrix())) {
+        for (const bubbles of Object.values(pages)) {
+            for (const bubble of Object.values(bubbles)) {
+                if (bubble.eng_human.trim()) {
+                    const words = bubble.eng_human.trim().split(/\s+/)
+                        .map(w => bubble.volumeNumber + ' ' + bubble.pageIndex + ': ' + w);
+                    allTranslatedWords.push(...words);
+                }
+            }
+        }
+    }
+    for (const pages of Object.values(notes.getMatrix())) {
+        for (const page of Object.values(pages)) {
+            if (page.text.trim()) {
+                const words = page.text.trim().split(/\s+/)
+                    .map(w => page.volumeNumber + ' ' + page.pageIndex + ': ' + w);
+                allTranslatedWords.push(...words);
+            }
+        }
+    }
+    return allTranslatedWords;
 };
 
 export default async (fetchingBubbles: Promise<Response>) => {
@@ -241,7 +275,6 @@ export default async (fetchingBubbles: Promise<Response>) => {
 
         gui.all_text_holder.innerHTML = '';
         const CELLS_PER_ROW = 3;
-        // TODO: implement saving entered translator notes
         // TODO: implement arrow navigation for bubbles on image
         for (const rowBlocks of chunked(blocks, CELLS_PER_ROW)) {
             const blockCells = rowBlocks.map(block => {
@@ -350,11 +383,28 @@ export default async (fetchingBubbles: Promise<Response>) => {
         showSelectedPage();
     };
 
-    whenBubbleMapping.then(() => {
+    whenBubbleMapping.then((mapping) => {
         document.body.setAttribute('data-status', 'READY');
         gui.status_message_holder.textContent = 'Ready for input';
     }).catch(error => {
         document.body.setAttribute('data-status', 'INITIALIZATION_ERROR');
         gui.status_message_holder.textContent = 'Failed to restore the last progress - ' + error;
+    });
+    Promise.all([whenBubbleMapping, whenNoteMapping]).then(([bubbles, notes]) => {
+        const printMoney = () => {
+            const allTranslatedWords = getAllTranslatedWords(bubbles, notes);
+            gui.words_translated_counter.textContent = String(allTranslatedWords.length);
+            // 3$ per 100 words
+            gui.money_earned_counter.textContent = String(3 * allTranslatedWords.length / 100);
+            gui.words_translated_counter.setAttribute('title',
+                allTranslatedWords
+                    .slice(0, 12)
+                    .concat(['...'])
+                    .concat(allTranslatedWords.slice(-12))
+                    .join('\n')
+            );
+        };
+        printMoney();
+        setInterval(printMoney, 5000);
     });
 };
