@@ -147,14 +147,18 @@ const getAllTranslatedWords = (bubbles: BubbleMapping, notes: NoteMapping) => {
     return allTranslatedWords;
 };
 
+const URL_PARAM_PAGE = "pageIndex";
+const URL_PARAM_VOLUME = "volumeNumber";
+
 export default async (fetchingBubbles: Promise<Response>) => {
     const googleTranslationsPath = './unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath).then(rs => rs.json());
     const fetchingNotes = fetch('./assets/translator_notes_transactions.json');
 
+    const urlSearchParams = new URLSearchParams(window.location.search);
     let api_token: string;
     try {
-        api_token = await getApiToken();
+        api_token = await getApiToken(urlSearchParams);
     } catch (error: unknown) {
         document.body.setAttribute('data-status', 'ERROR');
         gui.status_message_holder.textContent =
@@ -180,6 +184,12 @@ export default async (fetchingBubbles: Promise<Response>) => {
         gui.annotations_svg_root.innerHTML = '';
         const pageIndex = +gui.page_input.value;
         const volumeNumber = +gui.volume_input.value;
+
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        urlSearchParams.set(URL_PARAM_PAGE, pageIndex.toString());
+        urlSearchParams.set(URL_PARAM_VOLUME, volumeNumber.toString());
+        window.history.replaceState(null, "", "?" + urlSearchParams);
+
         const pageFileName = ('000' + pageIndex).slice(-3);
         const volumeDirName = ('00' + volumeNumber).slice(-2);
 
@@ -334,6 +344,12 @@ export default async (fetchingBubbles: Promise<Response>) => {
         }
     };
 
+    const pageFromUrl = urlSearchParams.get(URL_PARAM_PAGE);
+    const volumeFromUrl = urlSearchParams.get(URL_PARAM_VOLUME);
+    if (pageFromUrl && volumeFromUrl) {
+        gui.page_input.value = pageFromUrl;
+        gui.volume_input.value = volumeFromUrl;
+    }
     await showSelectedPage();
     gui.page_select_form.onchange = showSelectedPage;
     gui.go_to_next_page_button.onclick = () => {

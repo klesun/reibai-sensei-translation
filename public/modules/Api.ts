@@ -79,8 +79,7 @@ function bufferToHex (buffer: ArrayBuffer) {
         .join("");
 }
 
-export const getApiToken = async (): Promise<string> => {
-    const urlSearchParams = new URLSearchParams(window.location.search);
+export const getApiToken = async (urlSearchParams: URLSearchParams): Promise<string> => {
     if (urlSearchParams.has('api_token')) {
         window.localStorage.setItem('REIBAI_API_TOKEN', urlSearchParams.get('api_token')!);
     } else if (!window.localStorage.getItem('REIBAI_API_TOKEN')) {
