@@ -1,0 +1,8 @@
+text.outline {
+    stroke: white;
+    stroke-width: 4px;
+}
+text {
+    font-size: 30px;
+    font-weight: bold;
+}

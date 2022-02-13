@@ -7,6 +7,7 @@ import Api from "./modules/Api";
 import {NoteTransaction, PageTransactionBase} from "./modules/Api";
 import {TranslationTransactionBase} from "./modules/Api";
 import {TranslationTransaction, getApiToken} from "./modules/Api";
+import {collectBubblesStorage, collectNotesStorage, parseStreamedJson} from "./modules/DataParse";
 
 const gui = {
     annotations_svg_root: document.getElementById('annotations_svg_root')!,
@@ -50,19 +51,15 @@ const makeNoteKey = (tx: NoteTransaction) => {
     ])
 };
 
-const parseStreamedJson = async (rs: Response) => {
-    const dataStr = await rs.text();
-    return JSON.parse(dataStr + 'null]').slice(0, -1);
-};
-
-type BubbleMatrix = Record<number, Record<number, Record<number, TranslationTransaction>>>;
-type NoteMatrix = Record<number, Record<number, NoteTransaction>>;
-
-const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) => {
+const addLocalBackupTransactions = <
+    TTransaction extends
+        | TranslationTransaction
+        | NoteTransaction
+>(transactions: TTransaction[], storagePrefix: string) => {
     for (let i = 0; i < window.localStorage.length; ++i) {
         const key = window.localStorage.key(i);
-        if (key!.startsWith(BUBBLE_TRANSLATION + '_')) {
-            const tx: TranslationTransaction = JSON.parse(window.localStorage.getItem(key!)!);
+        if (key!.startsWith(storagePrefix + '_')) {
+            const tx: TTransaction = JSON.parse(window.localStorage.getItem(key!)!);
             transactions.push(tx);
         }
     }
@@ -70,25 +67,30 @@ const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) 
         return new Date(a.sentAt).getTime()
             - new Date(b.sentAt).getTime();
     });
-    const matrix: BubbleMatrix = {};
-    const set = (tx: TranslationTransaction) => {
-        matrix[tx.volumeNumber] = matrix[tx.volumeNumber] || {};
-        matrix[tx.volumeNumber][tx.pageIndex] = matrix[tx.volumeNumber][tx.pageIndex] || {};
-        matrix[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex] = tx;
-    };
-    transactions.forEach(set);
+};
+
+function toHandleUpdateResponse(localKey: string) {
+    return [
+        (rsData: Response) => {
+            const msg = 'Submitted your ' + localKey + ' update to server: ' + rsData.status;
+            document.body.setAttribute('data-status', 'SUCCESS');
+            gui.status_message_holder.textContent = msg;
+        },
+        (error: Error | unknown) => {
+            const msg = 'Could not submit your ' + localKey + ' update' +
+                ' to server. Your change was stored offline for now... REASON: ' + String(error).slice(0, 60);
+            document.body.setAttribute('data-status', 'ERROR');
+            gui.status_message_holder.textContent = msg;
+        },
+    ];
+}
+
+const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) => {
+    addLocalBackupTransactions(transactions, BUBBLE_TRANSLATION);
+    const { matrix, set, get } = collectBubblesStorage(transactions);
     return {
         getMatrix: () => matrix,
-        get: (tx: TranslationTransactionBase): TranslationTransaction | undefined => {
-            if (tx.volumeNumber in matrix &&
-                tx.pageIndex in matrix[tx.volumeNumber] &&
-                tx.ocrBubbleIndex in matrix[tx.volumeNumber][tx.pageIndex]
-            ) {
-                return matrix[tx.volumeNumber][tx.pageIndex][tx.ocrBubbleIndex];
-            } else {
-                return undefined;
-            }
-        },
+        get: get,
         set: (tx: TranslationTransaction) => {
             set(tx);
             // just to be safe in case some server transactions fail
@@ -96,69 +98,25 @@ const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) 
             window.localStorage.setItem(localKey, JSON.stringify(tx));
             // TODO: make a queue of actions to preserve order and for store failed actions and retry them once 30 seconds or smth
             api.submitBubbleUpdate({ transactions: [tx] })
-                .then(rsData => {
-                    const msg = 'Submitted your update at #' + tx.ocrBubbleIndex +
-                        ' to server: ' + rsData.status;
-                    document.body.setAttribute('data-status', 'SUCCESS');
-                    gui.status_message_holder.textContent = msg;
-                })
-                .catch(error => {
-                    const msg = 'Could not submit your update at #' + tx.ocrBubbleIndex +
-                        ' to server. Your change was stored offline for now... REASON: ' + String(error).slice(0, 60);
-                    document.body.setAttribute('data-status', 'ERROR');
-                    gui.status_message_holder.textContent = msg;
-                });
+                .then(...toHandleUpdateResponse(localKey));
         },
     };
 };
 type BubbleMapping = ReturnType<typeof prepareBubbleMapping>;
 
 const prepareNotesMapping = (transactions: NoteTransaction[], api: Api) => {
-    for (let i = 0; i < window.localStorage.length; ++i) {
-        const key = window.localStorage.key(i);
-        if (key!.startsWith(NOTE_TRANSLATION + '_')) {
-            const tx: NoteTransaction = JSON.parse(window.localStorage.getItem(key!)!);
-            transactions.push(tx);
-        }
-    }
-    transactions.sort((a,b) => {
-        return new Date(a.sentAt).getTime()
-            - new Date(b.sentAt).getTime();
-    });
-    const matrix: NoteMatrix = {};
-    const set = (tx: NoteTransaction) => {
-        matrix[tx.volumeNumber] = matrix[tx.volumeNumber] || {};
-        matrix[tx.volumeNumber][tx.pageIndex] = tx;
-    };
-    transactions.forEach(set);
+    addLocalBackupTransactions(transactions, NOTE_TRANSLATION);
+    const { matrix, set, get } = collectNotesStorage(transactions);
     return {
         getMatrix: () => matrix,
-        get: (tx: PageTransactionBase): NoteTransaction | undefined => {
-            if (tx.volumeNumber in matrix &&
-                tx.pageIndex in matrix[tx.volumeNumber]
-            ) {
-                return matrix[tx.volumeNumber][tx.pageIndex];
-            } else {
-                return undefined;
-            }
-        },
+        get: get,
         set: (tx: NoteTransaction) => {
             set(tx);
             // just to be safe in case some server transactions fail
             const localKey = makeNoteKey(tx);
             window.localStorage.setItem(localKey, JSON.stringify(tx));
             api.submitNoteUpdate({ transactions: [tx] })
-                .then(rsData => {
-                    const msg = 'Submitted your note update to server: ' + rsData.status;
-                    document.body.setAttribute('data-status', 'SUCCESS');
-                    gui.status_message_holder.textContent = msg;
-                })
-                .catch(error => {
-                    const msg = 'Could not submit your note update ' +
-                        'to server. Your change was stored offline for now... REASON: ' + String(error).slice(0, 60);
-                    document.body.setAttribute('data-status', 'ERROR');
-                    gui.status_message_holder.textContent = msg;
-                });
+                .then(...toHandleUpdateResponse(localKey));
         },
     };
 };
@@ -206,10 +164,10 @@ export default async (fetchingBubbles: Promise<Response>) => {
     const api = Api({api_token: api_token});
 
     const whenBubbleMapping = fetchingBubbles
-        .then(parseStreamedJson)
+        .then(rs => parseStreamedJson<TranslationTransaction>(rs))
         .then(txs => prepareBubbleMapping(txs, api));
     const whenNoteMapping = fetchingNotes
-        .then(parseStreamedJson)
+        .then(rs => parseStreamedJson<NoteTransaction>(rs))
         .then(txs => prepareNotesMapping(txs, api));
 
     const googleTranslations: GoogleSentenceTranslation[] = await whenGoogleTranslations;

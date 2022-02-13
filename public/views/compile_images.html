@@ -1,0 +1,22 @@
+<body>
+    <p>On this page you compile translated text into resulting svg/png. WIP.</p>
+    <svg width="685px" height="1440px">
+        <image href="https://reibai.info/unv/volumes/v02/033.jpg" />
+        <text x="120" y="240" class="outline">Huj</text>
+        <text x="120" y="240">Huj</text>
+    </svg>
+</body>
+
+<script type="module">
+    const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');
+    const fetchingBubbles = fetch('../assets/translation_update_transactions.json');
+    const fetchingNotes = fetch('../assets/translator_notes_transactions.json');
+    whenTsBrowser.then(tsBrowser => tsBrowser.loadModule('./compile_images.ts'))
+        .then(indexModule => indexModule.default(fetchingBubbles, fetchingNotes))
+        .catch(error => {
+            console.error(error);
+            alert('Script execution failed - ' + error);
+        });
+</script>
+
+<link href="./compile_images_svg.css" type="text/css" rel="stylesheet" />

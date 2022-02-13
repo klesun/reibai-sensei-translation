@@ -7362,3 +7362,4 @@
 {"volumeNumber":3,"pageIndex":141,"ocrBubbleIndex":10,"eng_human":"Yeah, she's surprisingly cute.","jpn_ocr":"うん意外と\nかわいいよな","bounds":{"minX":366,"minY":482,"maxX":431,"maxY":531},"author":"ngelzzz","sentAt":"2022-02-10T21:52:56.313Z"},
 {"volumeNumber":3,"pageIndex":141,"ocrBubbleIndex":10,"eng_human":"Yeah... she's surprisingly cute.","jpn_ocr":"うん意外と\nかわいいよな","bounds":{"minX":366,"minY":482,"maxX":431,"maxY":531},"author":"ngelzzz","sentAt":"2022-02-10T21:53:07.707Z"},
 {"volumeNumber":3,"pageIndex":141,"ocrBubbleIndex":7,"eng_human":"When Wakamiya is wearing a yukata like this...","jpn_ocr":"「ああ\n若宮も\n\nこうして\n浴衣とか\n着てると","bounds":{"minX":453,"minY":468,"maxX":542,"maxY":537},"author":"ngelzzz","sentAt":"2022-02-10T21:55:37.901Z"},
+{"volumeNumber":12,"pageIndex":19,"ocrBubbleIndex":2,"eng_human":"test","jpn_ocr":"世界中のファッション\n価値観を見て廻り\n\nついにたどりついたのよ","bounds":{"minX":543,"minY":30,"maxX":597,"maxY":388},"author":"klesun","sentAt":"2022-02-13T13:35:03.321Z"},
