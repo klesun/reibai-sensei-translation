@@ -2,12 +2,16 @@
 import {Svg, Dom} from "./modules/Dom.js";
 import {collectBlockText, getBlockBounds, getFontSize} from "./modules/OcrDataAdapter.js";
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
-import {CloudVisionApiResponse, IndexedBlock} from "./typing/CloudVisionApi.d";
+import type {CloudVisionApiResponse, IndexedBlock} from "./typing/CloudVisionApi.d";
 import Api from "./modules/Api";
 import {NoteTransaction, PageTransactionBase} from "./modules/Api";
-import {TranslationTransactionBase} from "./modules/Api";
 import {TranslationTransaction, getApiToken} from "./modules/Api";
-import {collectBubblesStorage, collectNotesStorage, parseStreamedJson} from "./modules/DataParse";
+import {
+    collectBubblesStorage,
+    collectNotesStorage,
+    parseStreamedJson
+} from "./modules/DataParse";
+import {printMoney} from "./modules/ProfitCalculation";
 
 const gui = {
     annotations_svg_root: document.getElementById('annotations_svg_root')!,
@@ -69,7 +73,7 @@ const addLocalBackupTransactions = <
     });
 };
 
-function toHandleUpdateResponse(localKey: string) {
+const toHandleUpdateResponse = (localKey: string) => {
     return [
         (rsData: Response) => {
             const msg = 'Submitted your ' + localKey + ' update to server: ' + rsData.status;
@@ -82,8 +86,19 @@ function toHandleUpdateResponse(localKey: string) {
             document.body.setAttribute('data-status', 'ERROR');
             gui.status_message_holder.textContent = msg;
         },
-    ];
-}
+    ] as const;
+};
+
+const initialStateResponseHandlers = [
+    () => {
+        document.body.setAttribute('data-status', 'READY');
+        gui.status_message_holder.textContent = 'Ready for input';
+    },
+    (error: Error | unknown) => {
+        document.body.setAttribute('data-status', 'INITIALIZATION_ERROR');
+        gui.status_message_holder.textContent = 'Failed to restore the last progress - ' + error;
+    },
+] as const;
 
 const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) => {
     addLocalBackupTransactions(transactions, BUBBLE_TRANSLATION);
@@ -122,31 +137,6 @@ const prepareNotesMapping = (transactions: NoteTransaction[], api: Api) => {
 };
 type NoteMapping = ReturnType<typeof prepareNotesMapping>;
 
-const getAllTranslatedWords = (bubbles: BubbleMapping, notes: NoteMapping) => {
-    let allTranslatedWords = [];
-    for (const pages of Object.values(bubbles.getMatrix())) {
-        for (const bubbles of Object.values(pages)) {
-            for (const bubble of Object.values(bubbles)) {
-                if (bubble.eng_human.trim()) {
-                    const words = bubble.eng_human.trim().split(/\s+/)
-                        .map(w => bubble.volumeNumber + ' ' + bubble.pageIndex + ': ' + w);
-                    allTranslatedWords.push(...words);
-                }
-            }
-        }
-    }
-    for (const pages of Object.values(notes.getMatrix())) {
-        for (const page of Object.values(pages)) {
-            if (page.text.trim()) {
-                const words = page.text.trim().split(/\s+/)
-                    .map(w => page.volumeNumber + ' ' + page.pageIndex + ': ' + w);
-                allTranslatedWords.push(...words);
-            }
-        }
-    }
-    return allTranslatedWords;
-};
-
 const URL_PARAM_PAGE = "pageIndex";
 const URL_PARAM_VOLUME = "volumeNumber";
 
@@ -155,6 +145,41 @@ const focusBubbleSvg = (ocrIndex: number | string) => {
         .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
     [...document.querySelectorAll('polygon[data-block-ocr-index="' + ocrIndex + '"]')]
         .forEach(poly => poly.classList.toggle('focused-block-polygon', true));
+};
+
+const makeBubbleBoundsRect = (block: IndexedBlock, jpnToEng: Map<string, string>) => {
+    const makeBlockStr = (b: IndexedBlock) => {
+        const jpnSentence = collectBlockText(b).trimEnd();
+        const engSentence = jpnToEng.get(jpnSentence);
+        return jpnSentence + '\n' + engSentence;
+    };
+
+    const bounds = getBlockBounds(block);
+    const pointsStr = [
+        {x: bounds.minX, y: bounds.minY},
+        {x: bounds.maxX, y: bounds.minY},
+        {x: bounds.maxX, y: bounds.maxY},
+        {x: bounds.minX, y: bounds.maxY},
+    ].map(v => v.x + ',' + v.y).join(' ');
+
+    const polygon = Svg('polygon', {
+        points: pointsStr,
+        class: 'block-polygon',
+        'data-block-ocr-index': block.ocrIndex,
+        onmousedown: () => {
+            [...document.querySelectorAll('.focused-block-polygon')]
+                .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
+            polygon.classList.toggle('focused-block-polygon', true);
+        },
+        onclick: () => {
+            [...document.querySelectorAll('textarea[data-block-ocr-index="' + block.ocrIndex + '"]')]
+                .forEach(area => (area as HTMLElement).focus());
+        },
+    }, [
+        Svg('title', {}, makeBlockStr(block)),
+    ]);
+
+    return polygon;
 };
 
 const makeBubbleField = (
@@ -271,36 +296,8 @@ export default async (fetchingBubbles: Promise<Response>) => {
         const jsonData: CloudVisionApiResponse = await whenOcrData;
         const { blocks } = OcrDataAdapter(jsonData);
 
-        const makeBlockStr = (b: IndexedBlock) => {
-            const jpnSentence = collectBlockText(b).trimEnd();
-            const engSentence = jpnToEng.get(jpnSentence);
-            return jpnSentence + '\n' + engSentence;
-        };
-
         for (const block of blocks) {
-            const bounds = getBlockBounds(block);
-            const pointsStr = [
-                {x: bounds.minX, y: bounds.minY},
-                {x: bounds.maxX, y: bounds.minY},
-                {x: bounds.maxX, y: bounds.maxY},
-                {x: bounds.minX, y: bounds.maxY},
-            ].map(v => v.x + ',' + v.y).join(' ');
-            const polygon = Svg('polygon', {
-                points: pointsStr,
-                class: 'block-polygon',
-                'data-block-ocr-index': block.ocrIndex,
-                onmousedown: () => {
-                    [...document.querySelectorAll('.focused-block-polygon')]
-                        .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
-                    polygon.classList.toggle('focused-block-polygon', true);
-                },
-                onclick: () => {
-                    [...document.querySelectorAll('textarea[data-block-ocr-index="' + block.ocrIndex + '"]')]
-                        .forEach(area => (area as HTMLElement).focus());
-                },
-            }, [
-                Svg('title', {}, makeBlockStr(block)),
-            ]);
+            const polygon = makeBubbleBoundsRect(block, jpnToEng);
             gui.annotations_svg_root.appendChild(polygon);
         }
 
@@ -366,28 +363,10 @@ export default async (fetchingBubbles: Promise<Response>) => {
         showSelectedPage();
     };
 
-    whenBubbleMapping.then((mapping) => {
-        document.body.setAttribute('data-status', 'READY');
-        gui.status_message_holder.textContent = 'Ready for input';
-    }).catch(error => {
-        document.body.setAttribute('data-status', 'INITIALIZATION_ERROR');
-        gui.status_message_holder.textContent = 'Failed to restore the last progress - ' + error;
-    });
+    whenBubbleMapping.then(...initialStateResponseHandlers);
     Promise.all([whenBubbleMapping, whenNoteMapping]).then(([bubbles, notes]) => {
-        const printMoney = () => {
-            const allTranslatedWords = getAllTranslatedWords(bubbles, notes);
-            gui.words_translated_counter.textContent = String(allTranslatedWords.length);
-            // 3$ per 100 words
-            gui.money_earned_counter.textContent = String(3 * allTranslatedWords.length / 100);
-            gui.words_translated_counter.setAttribute('title',
-                allTranslatedWords
-                    .slice(0, 12)
-                    .concat(['...'])
-                    .concat(allTranslatedWords.slice(-12))
-                    .join('\n')
-            );
-        };
-        printMoney();
-        setInterval(printMoney, 5000);
+        const displayProfit = () => printMoney(gui, bubbles.getMatrix(), notes.getMatrix());
+        displayProfit();
+        setInterval(displayProfit, 5000);
     });
 };
