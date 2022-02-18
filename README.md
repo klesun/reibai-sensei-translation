@@ -4,3 +4,5 @@
 ![](./public/docs/screenshot.png)
 
 OCR-ed with Google Cloud Vision API, going to be translated by Ngelzzz
+
+![image](https://user-images.githubusercontent.com/5202330/154653536-3058df6b-34ac-4024-92d3-ca26bae0157e.png)
