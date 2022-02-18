@@ -10,7 +10,7 @@ text.outline {
     stroke: white;
     stroke-width: 8px;
 }
-text {
+text.comic-text {
     font-size: 12px;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
 }

@@ -5,6 +5,7 @@ import {Svg} from "../modules/Dom.js";
 const gui = {
     injected_translations_svg_root: document.getElementById("injected_translations_svg_root")!,
     injected_translations_svg_defs: document.getElementById("injected_translations_svg_defs")!,
+    translators_note_text_path: document.getElementById("translators_note_text_path")!,
 };
 
 export default async (
@@ -42,9 +43,9 @@ export default async (
             d: pathLines.join(" "),
         });
         gui.injected_translations_svg_defs.appendChild(pathNode);
-        for (const className of ["outline", ""]) {
+        for (const classes of [['outline'], []]) {
             const textNode = Svg('text', {
-                class: className,
+                class: [...classes, 'comic-text'].join(" "),
             }, [
                 Svg('textPath', {
                     'href': '#' + pathId,
@@ -53,5 +54,9 @@ export default async (
             ]);
             gui.injected_translations_svg_root.appendChild(textNode);
         }
+    }
+    const translatorsNote = noteMapping.matrix?.[volumeNumber]?.[pageIndex]?.text;
+    if (translatorsNote) {
+        gui.translators_note_text_path.textContent = 'tr. note: ' + translatorsNote;
     }
 };
