@@ -8,7 +8,7 @@ import {NoteTransaction, PageTransactionBase} from "./modules/Api";
 import {TranslationTransaction, getApiToken} from "./modules/Api";
 import {
     collectBubblesStorage,
-    collectNotesStorage,
+    collectNotesStorage, getPageName,
     parseStreamedJson
 } from "./modules/DataParse";
 import {printMoney} from "./modules/ProfitCalculation";
@@ -283,14 +283,12 @@ export default async (fetchingBubbles: Promise<Response>) => {
         urlSearchParams.set(URL_PARAM_PAGE, pageIndex.toString());
         urlSearchParams.set(URL_PARAM_VOLUME, volumeNumber.toString());
         window.history.replaceState(null, "", "?" + urlSearchParams);
-
-        const pageFileName = ('000' + pageIndex).slice(-3);
-        const volumeDirName = ('00' + volumeNumber).slice(-2);
         const qualifier = { volumeNumber, pageIndex };
+        const pageName = getPageName(qualifier);
 
-        gui.current_page_img.setAttribute('src', "./unv/volumes/v" + volumeDirName + "/" + pageFileName + ".jpg");
+        gui.current_page_img.setAttribute('src', "./unv/volumes/" + pageName + ".jpg");
 
-        const jsonPath = './assets/ocred_volumes/v' + volumeDirName + '/' + pageFileName + '.jpg.json';
+        const jsonPath = './assets/ocred_volumes/' + pageName + '.jpg.json';
         const whenOcrData = fetch(jsonPath).then(rs => rs.json());
 
         const jsonData: CloudVisionApiResponse = await whenOcrData;

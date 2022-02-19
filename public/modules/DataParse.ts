@@ -51,3 +51,9 @@ export const collectNotesStorage = (transactions: NoteTransaction[]) => {
     transactions.forEach(set);
     return { matrix, set, get };
 };
+
+export const getPageName = ({pageIndex, volumeNumber}: PageTransactionBase) => {
+    const pageFileName = ('000' + pageIndex).slice(-3);
+    const volumeDirName = ('00' + volumeNumber).slice(-2);
+    return "v" + volumeDirName + "/" + pageFileName;
+};

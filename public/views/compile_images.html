@@ -1,19 +1,62 @@
 <body>
-    <p>On this page you compile translated text into resulting svg/png. WIP.</p>
-    <svg width="685px" height="1440px" id="injected_translations_svg_root" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <defs id="injected_translations_svg_defs">
-            <path id="translators_note_path" d="M0,1024 H685 M0,1036 H685 M0,1048 H685 M0,1060 H685"/>
-        </defs>
-        <image href="https://reibai.info/unv/volumes/v02/033.jpg" />
-        <text>
-            <textPath
-                href="#translators_note_path"
-                xlink:href="#translators_note_path"
-                id="translators_note_text_path"
-            ></textPath>
-        </text>
-    </svg>
+    <div class="page-root-sections">
+        <div>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="685px"
+                height="1440px"
+                id="injected_translations_svg_root"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+            >
+                <defs>
+                    <style>
+                        @font-face {
+                            font-family: 'Comic Sans MS';
+                            font-style: normal;
+                            font-weight: 400;
+                            src: local('Comic Sans MS'), local('ComicSansMS-Regular'),
+                            url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.woff) format('woff'),
+                            url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.ttf) format('truetype');
+                        }
+                        text.outline {
+                            stroke: white;
+                            stroke-width: 8px;
+                        }
+                        text.comic-text {
+                            font-size: 12px;
+                            font-family: "Comic Sans MS", "Comic Sans", cursive;
+                        }
+                    </style>
+                    <path id="translators_note_path" d="M0,1024 H685 M0,1036 H685 M0,1048 H685 M0,1060 H685"/>
+                </defs>
+                <defs id="bubble_text_paths_list"></defs>
+                <image id="src_scan_image" />
+                <g id="bubble_texts_list">
+
+                </g>
+                <text>
+                    <textPath
+                            href="#translators_note_path"
+                            xlink:href="#translators_note_path"
+                            id="translators_note_text_path"
+                    ></textPath>
+                </text>
+            </svg>
+        </div>
+        <div>
+            <p>On this page you compile translated text into resulting svg/png. WIP.</p>
+            <a id="download_svg_link">
+                <button>Download compiled SVG</button>
+            </a>
+        </div>
+    </div>
 </body>
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.js"
+    integrity="sha512-18QiVdJv36r1ryb5mr1lFpm4wZMORhvGgvz0mHQllOmx3NmSZkYwWuDcecFByaRVWqiQ0F/FZC5pCBMuy8IfkQ=="
+    crossorigin="anonymous"
+></script>
 
 <script type="module">
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');
@@ -27,4 +70,11 @@
         });
 </script>
 
-<link href="./compile_images_svg.css" type="text/css" rel="stylesheet" />
+<style>
+    .page-root-sections {
+        display: flex;
+    }
+    a:not([href]) button {
+        cursor: wait;
+    }
+</style>
