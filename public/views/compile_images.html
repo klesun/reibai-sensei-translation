@@ -4,7 +4,7 @@
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="685px"
-                height="1440px"
+                height="1060px"
                 id="injected_translations_svg_root"
                 xmlns:xlink="http://www.w3.org/1999/xlink"
             >
@@ -27,21 +27,23 @@
                             font-family: "Comic Sans MS", "Comic Sans", cursive;
                         }
                     </style>
-                    <path id="translators_note_path" d="M0,1024 H685 M0,1036 H685 M0,1048 H685 M0,1060 H685"/>
+                    <path id="translators_note_path" d="M0,1036 H666 M0,1048 H666 M0,1060 H666 H666"/>
                 </defs>
                 <defs id="bubble_text_paths_list"></defs>
                 <image id="src_scan_image" />
-                <g id="bubble_texts_list">
-
-                </g>
+                <g id="bubble_text_outlines_list"></g>
+                <g id="bubble_texts_list"></g>
                 <text>
                     <textPath
-                            href="#translators_note_path"
-                            xlink:href="#translators_note_path"
-                            id="translators_note_text_path"
+                        href="#translators_note_path"
+                        xlink:href="#translators_note_path"
+                        id="translators_note_text_path"
                     ></textPath>
                 </text>
             </svg>
+        </div>
+        <div>
+            <canvas id="output_png_canvas" width="685" height="1060"></canvas>
         </div>
         <div>
             <p>On this page you compile translated text into resulting svg/png. WIP.</p>
@@ -71,6 +73,9 @@
 </script>
 
 <style>
+    svg {
+        display: none;
+    }
     .page-root-sections {
         display: flex;
     }
