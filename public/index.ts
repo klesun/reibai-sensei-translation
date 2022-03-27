@@ -4,8 +4,10 @@ import {collectBlockText, getBlockBounds, getFontSize} from "./modules/OcrDataAd
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
 import type {CloudVisionApiResponse, IndexedBlock} from "./typing/CloudVisionApi.d";
 import Api from "./modules/Api";
-import {NoteTransaction, PageTransactionBase} from "./modules/Api";
-import {TranslationTransaction, getApiToken} from "./modules/Api";
+import type {LocalBackup} from "./modules/Api";
+import type {NoteTransaction, PageTransactionBase} from "./modules/Api";
+import type {TranslationTransaction} from "./modules/Api";
+import {getApiToken} from "./modules/Api";
 import {
     collectBubblesStorage,
     collectNotesStorage, getPageName,
@@ -43,6 +45,7 @@ const chunked = function*<T>(items: T[], chunkSize: number): Generator<T[]> {
 
 const BUBBLE_TRANSLATION = 'BUBBLE_TRANSLATION';
 const NOTE_TRANSLATION = 'NOTE_TRANSLATION';
+const APP_DEVICE_UID = 'APP_DEVICE_UID';
 
 const makeBubbleKey = (tx: TranslationTransaction) => {
     return BUBBLE_TRANSLATION + '_' + JSON.stringify([
@@ -55,18 +58,37 @@ const makeNoteKey = (tx: NoteTransaction) => {
     ])
 };
 
+const getLocalBackupTransactions = (): LocalBackup => {
+    let deviceUid = localStorage.getItem(APP_DEVICE_UID);
+    if (!deviceUid) {
+        // not very reliable, but whatever
+        deviceUid = Math.random().toString().replace(".", "");
+        localStorage.setItem(APP_DEVICE_UID, deviceUid);
+    }
+    const localBackup: LocalBackup = {
+        deviceUid: deviceUid,
+        BUBBLE_TRANSLATION: [],
+        NOTE_TRANSLATION: [],
+    };
+    for (let i = 0; i < window.localStorage.length; ++i) {
+        const key = window.localStorage.key(i);
+        if (key!.startsWith(BUBBLE_TRANSLATION + '_')) {
+            const tx = JSON.parse(window.localStorage.getItem(key!)!);
+            localBackup.BUBBLE_TRANSLATION.push(tx);
+        } else if (key!.startsWith(NOTE_TRANSLATION + '_')) {
+            const tx = JSON.parse(window.localStorage.getItem(key!)!);
+            localBackup.NOTE_TRANSLATION.push(tx);
+        }
+    }
+    return localBackup;
+};
+
 const addLocalBackupTransactions = <
     TTransaction extends
         | TranslationTransaction
         | NoteTransaction
->(transactions: TTransaction[], storagePrefix: string) => {
-    for (let i = 0; i < window.localStorage.length; ++i) {
-        const key = window.localStorage.key(i);
-        if (key!.startsWith(storagePrefix + '_')) {
-            const tx: TTransaction = JSON.parse(window.localStorage.getItem(key!)!);
-            transactions.push(tx);
-        }
-    }
+>(transactions: TTransaction[], localTransactions: TTransaction[]) => {
+    transactions.push(...localTransactions);
     transactions.sort((a,b) => {
         return new Date(a.sentAt).getTime()
             - new Date(b.sentAt).getTime();
@@ -100,8 +122,8 @@ const initialStateResponseHandlers = [
     },
 ] as const;
 
-const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) => {
-    addLocalBackupTransactions(transactions, BUBBLE_TRANSLATION);
+const prepareBubbleMapping = (transactions: TranslationTransaction[], localTransactions: TranslationTransaction[], api: Api) => {
+    addLocalBackupTransactions(transactions, getLocalBackupTransactions().BUBBLE_TRANSLATION);
     const { matrix, set, get } = collectBubblesStorage(transactions);
     return {
         getMatrix: () => matrix,
@@ -119,8 +141,8 @@ const prepareBubbleMapping = (transactions: TranslationTransaction[], api: Api) 
 };
 type BubbleMapping = ReturnType<typeof prepareBubbleMapping>;
 
-const prepareNotesMapping = (transactions: NoteTransaction[], api: Api) => {
-    addLocalBackupTransactions(transactions, NOTE_TRANSLATION);
+const prepareNotesMapping = (transactions: NoteTransaction[], localTransactions: NoteTransaction[], api: Api) => {
+    addLocalBackupTransactions(transactions, getLocalBackupTransactions().NOTE_TRANSLATION);
     const { matrix, set, get } = collectNotesStorage(transactions);
     return {
         getMatrix: () => matrix,
@@ -261,12 +283,13 @@ export default async (fetchingBubbles: Promise<Response>) => {
     }
     const api = Api({api_token: api_token});
 
+    const localBackup = getLocalBackupTransactions();
     const whenBubbleMapping = fetchingBubbles
         .then(rs => parseStreamedJson<TranslationTransaction>(rs))
-        .then(txs => prepareBubbleMapping(txs, api));
+        .then(txs => prepareBubbleMapping(txs, localBackup.BUBBLE_TRANSLATION, api));
     const whenNoteMapping = fetchingNotes
         .then(rs => parseStreamedJson<NoteTransaction>(rs))
-        .then(txs => prepareNotesMapping(txs, api));
+        .then(txs => prepareNotesMapping(txs, localBackup.NOTE_TRANSLATION, api));
 
     const googleTranslations: GoogleSentenceTranslation[] = await whenGoogleTranslations;
     const jpnToEng = new Map(
@@ -367,4 +390,6 @@ export default async (fetchingBubbles: Promise<Response>) => {
         displayProfit();
         setInterval(displayProfit, 5000);
     });
+
+    api.submitLocalBackup(localBackup);
 };

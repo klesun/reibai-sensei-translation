@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import {readJson} from "./utils/Http.js";
 import { Unauthorized, Forbidden } from '@curveball/http-errors';
 
 const AUTHORIZED_USERS = {

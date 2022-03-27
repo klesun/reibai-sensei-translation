@@ -105,6 +105,12 @@ export const getApiToken = async (urlSearchParams: URLSearchParams): Promise<str
     return window.localStorage.getItem('REIBAI_API_TOKEN')!;
 };
 
+export type LocalBackup = {
+    deviceUid: string,
+    BUBBLE_TRANSLATION: TranslationTransaction[],
+    NOTE_TRANSLATION: NoteTransaction[],
+};
+
 const Api = ({api_token}: {api_token: string}) => {
     const post = (route: string, params: Record<string, unknown>) => {
         return fetch(route, {
@@ -119,6 +125,7 @@ const Api = ({api_token}: {api_token: string}) => {
     return {
         submitBubbleUpdate: (params: submitBubbleUpdate_rq) => post('/api/submitBubbleUpdate', params),
         submitNoteUpdate: (params: submitNoteUpdate_rq) => post('/api/submitNoteUpdate', params),
+        submitLocalBackup: (params: LocalBackup) => post('/api/submitLocalBackup', params),
     };
 };
 

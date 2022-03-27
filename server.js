@@ -8,6 +8,7 @@ import {fileURLToPath} from "url";
 import { HttpErrorBase } from "@curveball/http-errors";
 import submitBubbleUpdate from "./server/api/submitBubbleUpdate.js";
 import submitNoteUpdate from "./server/api/submitNoteUpdate.js";
+import submitLocalBackup from "./server/api/submitLocalBackup.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_PATH = path.resolve(__dirname, './public');
@@ -106,6 +107,9 @@ const handleHttpRequestSafe = (req, res) => {
         serveJson(whenResult, res);
     } else if (url.pathname === '/api/submitNoteUpdate') {
         const whenResult = Promise.resolve(req).then(submitNoteUpdate);
+        serveJson(whenResult, res);
+    } else if (url.pathname === '/api/submitLocalBackup') {
+        const whenResult = Promise.resolve(req).then(submitLocalBackup);
         serveJson(whenResult, res);
     } else {
         serveStaticFile(req, res).catch(exc => {
