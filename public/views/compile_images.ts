@@ -30,6 +30,21 @@ const makeTextNode = (tx: TranslationTransaction, classes: string[]) => Svg('tex
     }, tx.eng_human)
 ]);
 
+// const letterWidthMapping = {};
+// function wrapWords(text: string, boundsWidth: number): string[] {
+//     const paragraphs = text.split('\n').filter(p => p.trim());
+//     return paragraphs.flatMap(paragraph => {
+//         const words = paragraph.split(' ');
+//         const lines = [''];
+//         for (const word of words) {
+//             lines[lines.length - 1] = (lines[lines.length - 1] + ' ' + word).trim();
+//             if (getLineWidth(lines[lines.length - 1]) > boundsWidth) {
+//
+//             }
+//         }
+//     });
+// }
+
 const makeBubbleText = (tx: TranslationTransaction) => {
     const minX = tx.bounds.minX - 4;
     const maxX = tx.bounds.maxX + 4;
@@ -97,7 +112,8 @@ export default async (
 
     const volumeNumber = 1;
     let totalSize = 0;
-    for (let pageIndex = 0; pageIndex < 156; ++pageIndex) {
+    // for (let pageIndex = 0; pageIndex < 156; ++pageIndex) {
+    for (let pageIndex = 74; pageIndex < 75; ++pageIndex) {
         const qualifier = {volumeNumber, pageIndex};
         compilePage(translations, qualifier);
         const svgStr = gui.injected_translations_svg_root.outerHTML;
@@ -113,7 +129,7 @@ export default async (
                 img.onload = () => {
                     ctx.drawImage(img, 0, 0);
                     resolve(gui.output_png_canvas.toDataURL());
-                }
+                };
             };
         });
 
