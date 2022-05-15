@@ -268,7 +268,8 @@ const makeBubbleField = (
 
 export default async (fetchingBubbles: Promise<Response>) => {
     const googleTranslationsPath = './unv/google_translations.json';
-    const whenGoogleTranslations = fetch(googleTranslationsPath).then(rs => rs.json());
+    const whenGoogleTranslations = fetch(googleTranslationsPath)
+        .then(rs => rs.status === 200 ? rs.json() : []);
     const fetchingNotes = fetch('./assets/translator_notes_transactions.json');
 
     const urlSearchParams = new URLSearchParams(window.location.search);
