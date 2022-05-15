@@ -3,7 +3,7 @@ import { Unauthorized, Forbidden } from '@curveball/http-errors';
 
 const AUTHORIZED_USERS = {
     'f9979e5a7bb85ca891ee8819b955a906f68b9a589d9d224dae6f359b9e711c5f': 'ngelzzz',
-    '41e90b5d85511ce65e6e3b1a8f915c3d9c91e9d6b069f70f715d96e0c776d3de': 'klesun',
+    'f1cbf1ae00f8873d26a019041883a393698df4418ece3b240d8e9af2b631601e': 'klesun',
 };
 
 /**

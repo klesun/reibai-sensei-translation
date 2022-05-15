@@ -95,7 +95,7 @@ export const getApiToken = async (urlSearchParams: URLSearchParams): Promise<str
             .digest('SHA-256', passwordBytes)
             .then(bufferToHex);
         if (hash !== 'f9979e5a7bb85ca891ee8819b955a906f68b9a589d9d224dae6f359b9e711c5f' &&
-            hash !== '41e90b5d85511ce65e6e3b1a8f915c3d9c91e9d6b069f70f715d96e0c776d3de'
+            hash !== 'f1cbf1ae00f8873d26a019041883a393698df4418ece3b240d8e9af2b631601e'
         ) {
             const msg = 'Wrong api_token in the URL. Possibly some characters got ' +
                 'missing during a copy-paste or smth. Email me if you need help.';
