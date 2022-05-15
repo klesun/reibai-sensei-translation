@@ -1,0 +1,36 @@
+[
+    {
+        "volume": 1,
+        "chapters": [
+            {"chapter": 1, "startPage": 5, "englishTitle": "Kibayashi Curse Appears", "japaneseTitle": "木林理現る"},
+            {"chapter": 2, "startPage": 15, "englishTitle": "The Darkness of the Black Cat", "japaneseTitle": "黒ねこの暗黒"},
+            {"chapter": 3, "startPage": 25, "englishTitle": "Weeping to Konaki Jijii", "japaneseTitle": "子泣き爺に泣く"},
+            {"chapter": 4, "startPage": 39, "englishTitle": "Alumnis", "japaneseTitle": "学友たち"},
+            {"chapter": 5, "startPage": 55, "englishTitle": "I Am The Benjyo Nyūdō", "japaneseTitle": "わたしが所入道で"},
+            {"chapter": 6, "startPage": 65, "englishTitle": "Wakimofu", "japaneseTitle": "ワキモフ"},
+            {"chapter": 7, "startPage": 79, "englishTitle": "I Like Pudding", "japaneseTitle": "プリンが好き"},
+            {"chapter": 7.1, "startPage": 92, "englishTitle": "Hanetsuki-nya", "japaneseTitle": "羽根つきニャ"},
+            {"chapter": 8, "startPage": 96, "englishTitle": "The Materialist Nagara-sensei", "japaneseTitle": "唯物主義者長良生"},
+            {"chapter": 9, "startPage": 105, "englishTitle": "You Are Too Bright", "japaneseTitle": "君がまぶしすぎて"},
+            {"chapter": 10, "startPage": 125, "englishTitle": "The Fairy Gwark's Web", "japaneseTitle": "妖精グワルクの網"},
+            {"chapter": 11, "startPage": 145, "englishTitle": "Black Cat Diet", "japaneseTitle": "黒ねこダイエット"},
+            {"chapter": 11.1, "startPage": 152, "englishTitle": "A Principal's Job", "japaneseTitle": "校長先生のお仕事"}
+        ]
+    },
+    {
+        "volume": 2,
+        "chapters": [
+            {"chapter": 12, "startPage": 7, "englishTitle": "Forehead", "japaneseTitle": "おでこ"},
+            {"chapter": 13, "startPage": 29, "englishTitle": "Mihoro Mitoko-san's Situation", "japaneseTitle": "美幌素子さんの事情"},
+            {"chapter": 14, "startPage": 49, "englishTitle": "Pre-warmed Butter", "japaneseTitle": "あらかじめ温めておいたバター"},
+            {"chapter": 15, "startPage": 59, "englishTitle": "King of Cats", "japaneseTitle": "ねこの王"},
+            {"chapter": 16, "startPage": 81, "englishTitle": "That's...", "japaneseTitle": "だからそれは"},
+            {"chapter": 17, "startPage": 103, "englishTitle": "Valentine's Day", "japaneseTitle": "バレンタインデー"},
+            {"chapter": 18, "startPage": 111, "englishTitle": "Cat Boom and the Black Cat", "japaneseTitle": "ねこブームと黒ねこ"},
+            {"chapter": 19, "startPage": 121, "englishTitle": "Great Devil Fashion", "japaneseTitle": "大悪魔系"},
+            {"chapter": 20, "startPage": 129, "englishTitle": "Kudagitsune Appears", "japaneseTitle": "クダギツネ湧く"},
+            {"chapter": 21, "startPage": 137, "englishTitle": "Otora Gitsune Appears", "japaneseTitle": "おとら狐出る"},
+            {"chapter": 22, "startPage": 146, "englishTitle": "Unparalleled Tension", "japaneseTitle": "無敵のテンション"}
+        ]
+    }
+]
