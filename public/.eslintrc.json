@@ -1,0 +1,18 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "rules": {
+    "indent": ["error", 4],
+    "prefer-const": "error",
+    "no-undef": "error",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-prototype-builtins": "error",
+    "@typescript-eslint/consistent-type-imports": "error"
+  },
+  "env": {
+    "browser": true
+  }
+}
