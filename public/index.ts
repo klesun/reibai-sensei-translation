@@ -1,8 +1,5 @@
 
-import {Svg, Dom} from "./modules/Dom.js";
-import {collectBlockText, getBlockBounds, getFontSize} from "./modules/OcrDataAdapter.js";
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
-import type {CloudVisionApiResponse, IndexedBlock} from "./typing/CloudVisionApi.d";
 import Api from "./modules/Api";
 import type {LocalBackup} from "./modules/Api";
 import type {NoteTransaction, PageTransactionBase} from "./modules/Api";
@@ -14,12 +11,14 @@ import {
     parseStreamedJson
 } from "./modules/DataParse";
 import {printMoney} from "./modules/ProfitCalculation";
+import CreatePageTranslationView from "./modules/CreatePageTranslationView";
+import ActionsQueue from "./modules/ActionsQueue";
 
 const gui = {
-    annotations_svg_root: document.getElementById('annotations_svg_root')!,
+    annotations_svg_root: document.getElementById('annotations_svg_root')! as unknown as SVGElement,
     node_json_holder: document.getElementById('node_json_holder')!,
     selected_block_text_holder: document.getElementById('selected_block_text_holder')!,
-    all_text_holder: document.getElementById('all_text_holder')!,
+    translation_blocks_rows_list: document.getElementById('translation_blocks_rows_list')!,
     current_page_img: document.getElementById('current_page_img')!,
     page_input: document.getElementById('page_input') as HTMLInputElement,
     volume_input: document.getElementById('volume_input') as HTMLInputElement,
@@ -30,17 +29,12 @@ const gui = {
     translator_notes_input: document.getElementById('translator_notes_input') as HTMLTextAreaElement,
     words_translated_counter: document.getElementById('words_translated_counter')!,
     money_earned_counter: document.getElementById('money_earned_counter')!,
+    add_bubble_btn: document.getElementById('add_bubble_btn')!,
 };
 
 type GoogleSentenceTranslation = {
     jpn_ocr: string,
     eng_google: string,
-};
-
-const chunked = function*<T>(items: T[], chunkSize: number): Generator<T[]> {
-    for (let i = 0; i < items.length; i += chunkSize) {
-        yield items.slice(i, i + chunkSize);
-    }
 };
 
 const BUBBLE_TRANSLATION = 'BUBBLE_TRANSLATION';
@@ -58,11 +52,15 @@ const makeNoteKey = (tx: NoteTransaction) => {
     ])
 };
 
+const createUuid = () => {
+    // not very reliable, but whatever
+    return Math.random().toString().replace(".", "");
+};
+
 const getLocalBackupTransactions = (): LocalBackup => {
     let deviceUid = localStorage.getItem(APP_DEVICE_UID);
     if (!deviceUid) {
-        // not very reliable, but whatever
-        deviceUid = Math.random().toString().replace(".", "");
+        deviceUid = createUuid();
         localStorage.setItem(APP_DEVICE_UID, deviceUid);
     }
     const localBackup: LocalBackup = {
@@ -126,7 +124,7 @@ const prepareBubbleMapping = (transactions: TranslationTransaction[], localTrans
     addLocalBackupTransactions(transactions, getLocalBackupTransactions().BUBBLE_TRANSLATION);
     const { matrix, set, get } = collectBubblesStorage(transactions);
     return {
-        getMatrix: () => matrix,
+        matrix: matrix,
         get: get,
         set: (tx: TranslationTransaction) => {
             set(tx);
@@ -139,13 +137,12 @@ const prepareBubbleMapping = (transactions: TranslationTransaction[], localTrans
         },
     };
 };
-type BubbleMapping = ReturnType<typeof prepareBubbleMapping>;
 
 const prepareNotesMapping = (transactions: NoteTransaction[], localTransactions: NoteTransaction[], api: Api) => {
     addLocalBackupTransactions(transactions, getLocalBackupTransactions().NOTE_TRANSLATION);
     const { matrix, set, get } = collectNotesStorage(transactions);
     return {
-        getMatrix: () => matrix,
+        matrix: matrix,
         get: get,
         set: (tx: NoteTransaction) => {
             set(tx);
@@ -157,113 +154,15 @@ const prepareNotesMapping = (transactions: NoteTransaction[], localTransactions:
         },
     };
 };
-type NoteMapping = ReturnType<typeof prepareNotesMapping>;
 
 const URL_PARAM_PAGE = "pageIndex";
 const URL_PARAM_VOLUME = "volumeNumber";
 
-const focusBubbleSvg = (ocrIndex: number | string) => {
-    [...document.querySelectorAll('.focused-block-polygon')]
-        .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
-    [...document.querySelectorAll('polygon[data-block-ocr-index="' + ocrIndex + '"]')]
-        .forEach(poly => poly.classList.toggle('focused-block-polygon', true));
-};
-
-const makeBubbleBoundsRect = (block: IndexedBlock, jpnToEng: Map<string, string>) => {
-    const makeBlockStr = (b: IndexedBlock) => {
-        const jpnSentence = collectBlockText(b).trimEnd();
-        const engSentence = jpnToEng.get(jpnSentence);
-        return jpnSentence + '\n' + engSentence;
-    };
-
-    const bounds = getBlockBounds(block);
-    const pointsStr = [
-        {x: bounds.minX, y: bounds.minY},
-        {x: bounds.maxX, y: bounds.minY},
-        {x: bounds.maxX, y: bounds.maxY},
-        {x: bounds.minX, y: bounds.maxY},
-    ].map(v => v.x + ',' + v.y).join(' ');
-
-    const polygon = Svg('polygon', {
-        points: pointsStr,
-        class: 'block-polygon',
-        'data-block-ocr-index': block.ocrIndex,
-        onmousedown: () => {
-            [...document.querySelectorAll('.focused-block-polygon')]
-                .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
-            polygon.classList.toggle('focused-block-polygon', true);
-        },
-        onclick: () => {
-            [...document.querySelectorAll('textarea[data-block-ocr-index="' + block.ocrIndex + '"]')]
-                .forEach(area => (area as HTMLElement).focus());
-        },
-    }, [
-        Svg('title', {}, makeBlockStr(block)),
-    ]);
-
-    return polygon;
-};
-
-const makeBubbleField = (
-    block: IndexedBlock,
-    qualifier: PageTransactionBase,
-    jpnToEng: Map<string, string>,
-    whenBubbleMapping: Promise<BubbleMapping>
-): HTMLElement => {
-    const jpnSentence = collectBlockText(block).trimEnd();
-    const engSentence = jpnToEng.get(jpnSentence);
-
-    const txBase = {
-        ...qualifier,
-        ocrBubbleIndex: block.ocrIndex,
-        jpn_ocr: jpnSentence,
-        bounds: getBlockBounds(block),
-    } as const;
-    let lastValue = '';
-    const textarea = Dom('textarea', {
-        type: 'text',
-        placeholder: engSentence || '', rows: 3,
-        'data-block-ocr-index': block.ocrIndex,
-        // TODO: check if blur triggers when you close browser
-        onblur: (evt: Event) => {
-            if (lastValue !== textarea.value) {
-                lastValue = textarea.value;
-                const tx: TranslationTransaction = {
-                    ...txBase,
-                    eng_human: lastValue,
-                    sentAt: new Date().toISOString(),
-                };
-                whenBubbleMapping.then(data => data.set(tx));
-            }
-        },
-    });
-    whenBubbleMapping.then(data => {
-        const lastTranslation = data.get(txBase);
-        if (lastTranslation) {
-            textarea.value = lastTranslation.eng_human + textarea.value;
-            lastValue = textarea.value;
-        }
-    });
-    return Dom('div', {
-        class: 'sentence-block',
-        onmousedown: () => focusBubbleSvg(block.ocrIndex),
-    }, [
-        Dom('div', {style: 'flex: 1'}),
-        Dom('div', {class: 'ocred-text-block'}, [
-            Dom('div', {}, jpnSentence),
-            Dom('div', {style: 'display: flex; align-items: end'}, [
-                Dom('div', {}, [
-                    Dom('div', {class: 'font-size-holder'}, getFontSize(block) + 'px'),
-                    Dom('div', {
-                        class: 'confidence-holder',
-                        title: 'Recognized Text Confidence'
-                    }, block.confidence.toFixed(2)),
-                ]),
-                Dom('div', {class: 'bubble-number-holder'}, '#' + block.ocrIndex),
-            ]),
-        ]),
-        textarea,
-    ]);
+const updateUrl = (qualifier: PageTransactionBase) => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    urlSearchParams.set(URL_PARAM_PAGE, qualifier.pageIndex.toString());
+    urlSearchParams.set(URL_PARAM_VOLUME, qualifier.volumeNumber.toString());
+    window.history.replaceState(null, "", "?" + urlSearchParams);
 };
 
 export default async (fetchingBubbles: Promise<Response>) => {
@@ -297,79 +196,36 @@ export default async (fetchingBubbles: Promise<Response>) => {
         googleTranslations.map(r => [r.jpn_ocr, r.eng_google])
     );
 
-    let lastFormListener: ((e: Event) => void) | null = null;
-    const showSelectedPage = async () => {
+    const loadingPagesQueue = ActionsQueue();
+
+    const showSelectedPage = () => {
         gui.annotations_svg_root.innerHTML = '';
         const pageIndex = +gui.page_input.value;
         const volumeNumber = +gui.volume_input.value;
 
-        const urlSearchParams = new URLSearchParams(window.location.search);
-        urlSearchParams.set(URL_PARAM_PAGE, pageIndex.toString());
-        urlSearchParams.set(URL_PARAM_VOLUME, volumeNumber.toString());
-        window.history.replaceState(null, "", "?" + urlSearchParams);
         const qualifier = { volumeNumber, pageIndex };
+        updateUrl(qualifier);
         const pageName = getPageName(qualifier);
 
         gui.current_page_img.setAttribute('src', "./unv/volumes/" + pageName + ".jpg");
 
         const jsonPath = './assets/ocred_volumes/' + pageName + '.jpg.json';
-        const whenOcrData = fetch(jsonPath).then(rs => rs.json());
 
-        const jsonData: CloudVisionApiResponse = await whenOcrData;
-        const { blocks } = OcrDataAdapter(jsonData);
-
-        for (const block of blocks) {
-            const polygon = makeBubbleBoundsRect(block, jpnToEng);
-            gui.annotations_svg_root.appendChild(polygon);
-        }
-
-        gui.all_text_holder.innerHTML = '';
-        const CELLS_PER_ROW = 3;
-        // TODO: implement arrow navigation for bubbles on image
-        for (const rowBlocks of chunked(blocks, CELLS_PER_ROW)) {
-            const blockCells = rowBlocks.map(block => makeBubbleField(
-                block, qualifier, jpnToEng, whenBubbleMapping
-            ));
-            const remainderCells = [];
-            for (let i = 0; i < CELLS_PER_ROW - blockCells.length; ++i) {
-                remainderCells.push(Dom('div', {class: 'remainder-cell'}));
-            }
-            gui.all_text_holder.appendChild(
-                Dom('div', {class: 'translation-blocks-row'}, blockCells.concat(remainderCells)),
-            );
-        }
-
-        if (lastFormListener) {
-            gui.bubbles_translations_input_form.removeEventListener('focus', lastFormListener);
-        }
-        lastFormListener = (evt: Event) => {
-            const target = evt.target as HTMLElement;
-            if (target.hasAttribute('data-block-ocr-index')) {
-                focusBubbleSvg(target.getAttribute('data-block-ocr-index')!);
-            }
-        };
-        gui.bubbles_translations_input_form.addEventListener('focus', lastFormListener, true);
-
-        const noteMapping = await whenNoteMapping;
-        const lastNote = noteMapping.get({volumeNumber, pageIndex});
-        let lastNoteValue = lastNote ? lastNote.text : '';
-        gui.translator_notes_input.value = lastNoteValue;
-        gui.translator_notes_input.onblur = () => {
-            if (lastNoteValue !== gui.translator_notes_input.value) {
-                lastNoteValue = gui.translator_notes_input.value;
-                const tx: NoteTransaction = {
-                    volumeNumber, pageIndex,
-                    text: lastNoteValue,
-                    sentAt: new Date().toISOString(),
-                };
-                noteMapping.set(tx);
-            }
-        };
-
-        const firstInput = gui.all_text_holder.querySelector('textarea[data-block-ocr-index]') as HTMLTextAreaElement;
-        if (firstInput) {
-            firstInput.focus();
-        }
+        gui.status_message_holder.textContent = "Loading " + pageName + "...";
+        loadingPagesQueue.enqueue(async () => {
+            const jsonData = await fetch(jsonPath).then(rs => rs.json());
+            const { blocks } = OcrDataAdapter(jsonData);
+            const bubbleMapping = await whenBubbleMapping;
+            const noteMapping = await whenNoteMapping;
+            const translationsStorage = {
+                bubbles: bubbleMapping,
+                notes: noteMapping,
+            };
+            CreatePageTranslationView({qualifier, blocks, gui, translationsStorage, jpnToEng});
+            gui.status_message_holder.textContent = "Ready for input";
+        }).catch(error => {
+            gui.status_message_holder.textContent = "Failed to load " + pageName + " - " + error;
+        });
     };
 
     const pageFromUrl = urlSearchParams.get(URL_PARAM_PAGE);
@@ -387,7 +243,7 @@ export default async (fetchingBubbles: Promise<Response>) => {
 
     whenBubbleMapping.then(...initialStateResponseHandlers);
     Promise.all([whenBubbleMapping, whenNoteMapping]).then(([bubbles, notes]) => {
-        const displayProfit = () => printMoney(gui, bubbles.getMatrix(), notes.getMatrix());
+        const displayProfit = () => printMoney(gui, bubbles.matrix, notes.matrix);
         displayProfit();
         setInterval(displayProfit, 5000);
     });

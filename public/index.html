@@ -42,7 +42,7 @@
                 </div>
             </div>
             <form id="bubbles_translations_input_form">
-                <div id="all_text_holder"></div>
+                <div id="translation_blocks_rows_list"></div>
             </form>
         </div>
     </div>
@@ -50,6 +50,7 @@
         <textarea id="translator_notes_input" style="flex: 1" placeholder="Put here free-form remarks. Like 'Bubble between #6 and #13 not recognized, it says 泣かしちゃった which translates to `Tokyo is the capital of Japan`'. Based on these remarks, I'll tune the tool to standardize such corner cases" rows="5"></textarea>
         <button id="go_to_next_page_button" style="margin: 12px; font-size: 24px;" onclick="alert('Loading, please wait!')">→ Next!</button>
     </div>
+    <hr/>
     <p>Hey, Ngelzzz!</p>
     <p>Here is a web app I wrote for you to translate the <a href="https://myanimelist.net/anime/10338/Honto_ni_Atta_Reibai_Sensei">Honto ni Atta! Reibai Sensei</a> manga</p>
     <p>You can navigate through bubbles by either clicking on them, or by pressing TAB button. Please, ignore the blocks that represent small hiragana pronunciation of kanji or mark such blocks with "xxx" - they don't need to be translated</p>
@@ -101,7 +102,7 @@
     .remainder-cell {
         flex: 1;
     }
-    #all_text_holder {
+    #translation_blocks_rows_list {
         margin-left: 12px;
         /* on 4k display it would be impractical to get blocks so fare from each other */
         max-width: 840px;
@@ -168,5 +169,8 @@
     }
     .earned-money-calculator [title]:not([title=""]) {
         cursor: help;
+    }
+    #annotations_svg_root {
+        cursor: copy;
     }
 </style>
