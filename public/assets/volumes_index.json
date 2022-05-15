@@ -32,5 +32,21 @@
             {"chapter": 21, "startPage": 137, "englishTitle": "Otora Gitsune Appears", "japaneseTitle": "おとら狐出る"},
             {"chapter": 22, "startPage": 146, "englishTitle": "Unparalleled Tension", "japaneseTitle": "無敵のテンション"}
         ]
+    },
+    {
+        "volume": 3,
+        "chapters": [
+            {"chapter": 23, "startPage": 7, "englishTitle": "Wanibuchi-kun and Nobunaga-chan", "japaneseTitle": "鰐淵くんと信長ちゃん"},
+            {"chapter": 24, "startPage": 29, "englishTitle": "Wakamiya Hinako-san", "japaneseTitle": "若宮ひな子さん"},
+            {"chapter": 25, "startPage": 59, "englishTitle": "Balance Ball Excercise", "japaneseTitle": "バランスボールエクササイズ"},
+            {"chapter": 26, "startPage": 77, "englishTitle": "", "japaneseTitle": "ダンボールを与えたら"},
+            {"chapter": 27, "startPage": 88, "englishTitle": "History's Biggest Physical Examination", "japaneseTitle": "史上最大の身体測定"},
+            {"chapter": 27.1, "startPage": 103, "englishTitle": "", "japaneseTitle": "黒ねこ漫画道"},
+            {"chapter": 28, "startPage": 111, "englishTitle": "Japanese Summer", "japaneseTitle": "にっぽんの夏"},
+            {"chapter": 29, "startPage": 128, "englishTitle": "All About Being Well-Loved", "japaneseTitle": "愛され上手のすべて"},
+            {"chapter": 30, "startPage": 137, "englishTitle": "The Way To Enjoy Tanabata", "japaneseTitle": "七夕の楽しみかた"},
+            {"chapter": 30.1, "startPage": 148, "englishTitle": "The Science Department Head's Loyalty", "japaneseTitle": "科学部部長の忠心"},
+            {"chapter": 30.2, "startPage": 152, "englishTitle": "Popularity Contest?", "japaneseTitle": "人気投票"}
+        ]
     }
 ]
