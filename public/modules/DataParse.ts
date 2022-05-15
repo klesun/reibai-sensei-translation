@@ -11,6 +11,10 @@ export const parseStreamedJson = async <
 
 export type BubbleMatrix = Record<number, Record<number, Record<number, TranslationTransaction>>>;
 export type NoteMatrix = Record<number, Record<number, NoteTransaction>>;
+export type Translations = {
+    bubbleMatrix: BubbleMatrix,
+    noteMatrix: NoteMatrix,
+};
 
 export const collectBubblesStorage = (transactions: TranslationTransaction[]) => {
     const matrix: BubbleMatrix = {};
@@ -50,6 +54,14 @@ export const collectNotesStorage = (transactions: NoteTransaction[]) => {
     };
     transactions.forEach(set);
     return { matrix, set, get };
+};
+
+
+export type BubbleMapping = ReturnType<typeof collectBubblesStorage>;
+export type NoteMapping = ReturnType<typeof collectNotesStorage>;
+export type TranslationsStorage = {
+    bubbles: BubbleMapping,
+    notes: NoteMapping,
 };
 
 export const getPageName = ({pageIndex, volumeNumber}: PageTransactionBase) => {

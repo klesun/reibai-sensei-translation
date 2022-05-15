@@ -1,17 +1,19 @@
+import type {Translations} from "../modules/DataParse";
 import {
-    BubbleMatrix,
     collectBubblesStorage,
     collectNotesStorage, getPageName,
-    NoteMatrix,
     parseStreamedJson
 } from "../modules/DataParse";
-import {NoteTransaction, PageTransactionBase, TranslationTransaction} from "../modules/Api";
+import type {NoteTransaction, PageTransactionBase, TranslationTransaction} from "../modules/Api";
+import type * as JSZipModule from "../node_modules/jszip/index";
+
+declare const JSZip: JSZipModule;
 
 const gui = {
     bubble_text_paths_list: document.getElementById("bubble_text_paths_list")!,
     translators_note_text_path: document.getElementById("translators_note_text_path")!,
     download_result_link: document.getElementById("download_result_link") as HTMLAnchorElement,
-    src_scan_image: document.getElementById("src_scan_image") as SVGImageElement,
+    src_scan_image: document.getElementById("src_scan_image") as unknown as SVGImageElement,
     bubble_texts_list: document.getElementById("bubble_texts_list")!,
     bubble_text_outlines_list: document.getElementById("bubble_text_outlines_list")!,
     output_png_canvas: document.getElementById("output_png_canvas") as HTMLCanvasElement,
@@ -114,11 +116,6 @@ const drawTranslation = (ctx: CanvasRenderingContext2D, translations: Translatio
             ctx.fillText(wrapped[i], 0, 1024 + FONT_SIZE * (i + 1));
         }
     }
-};
-
-type Translations = {
-    bubbleMatrix: BubbleMatrix,
-    noteMatrix: NoteMatrix,
 };
 
 export default async (

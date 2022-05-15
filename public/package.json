@@ -1,0 +1,7 @@
+{
+  "name": "reibai-sensei-translation-web",
+  "type": "module",
+  "devDependencies": {
+    "@types/jszip": "^3.4.1"
+  }
+}
