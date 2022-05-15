@@ -1,62 +1,43 @@
 <body>
+    <div id="status_message_holder">Loading...</div>
     <div class="page-root-sections">
         <div>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="685px"
-                height="1060px"
-                id="injected_translations_svg_root"
-                xmlns:xlink="http://www.w3.org/1999/xlink"
-            >
-                <defs>
-                    <style>
-                        @font-face {
-                            font-family: 'Comic Sans MS';
-                            font-style: normal;
-                            font-weight: 400;
-                            src: local('Comic Sans MS'), local('ComicSansMS-Regular'),
-                            url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.woff) format('woff'),
-                            url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.ttf) format('truetype');
-                        }
-                        text.outline {
-                            stroke: white;
-                            stroke-width: 8px;
-                        }
-                        text.comic-text {
-                            font-size: 12px;
-                            font-family: "Comic Sans MS", "Comic Sans", cursive;
-                        }
-                    </style>
-                    <path id="translators_note_path" d="M0,1036 H666 M0,1048 H666 M0,1060 H666 H666"/>
-                </defs>
-                <defs id="bubble_text_paths_list"></defs>
-                <image id="src_scan_image" />
-                <g id="bubble_text_outlines_list"></g>
-                <g id="bubble_texts_list"></g>
-                <text>
-                    <textPath
-                        href="#translators_note_path"
-                        xlink:href="#translators_note_path"
-                        id="translators_note_text_path"
-                    ></textPath>
-                </text>
-            </svg>
+            <canvas id="output_png_canvas" width="685" height="1084"></canvas>
         </div>
         <div>
-            <canvas id="output_png_canvas" width="685" height="1060"></canvas>
+            <div>
+                <p>On this page you compile translated text into resulting png. WIP.</p>
+                <a id="download_result_link">
+                    <button>Download compiled PNGs</button>
+                </a>
+            </div>
+            <div>
+                <img id="src_scan_image" style="width: 60px"/>
+            </div>
         </div>
-        <div>
-            <p>On this page you compile translated text into resulting svg/png. WIP.</p>
-            <a id="download_svg_link">
-                <button>Download compiled SVG</button>
-            </a>
-        </div>
+        <img id="white_blur_img" src="./white_blur.png" />
     </div>
+
 </body>
 
+<style>
+    @font-face {
+        font-family: 'Comic Sans MS';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Comic Sans MS'), local('ComicSansMS-Regular'),
+        url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.woff) format('woff'),
+        url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.ttf) format('truetype');
+    }
+    #status_message_holder {
+        font-size: 12px;
+        padding: 3px;
+        text-align: center;
+    }
+</style>
+
 <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.js"
-    integrity="sha512-18QiVdJv36r1ryb5mr1lFpm4wZMORhvGgvz0mHQllOmx3NmSZkYwWuDcecFByaRVWqiQ0F/FZC5pCBMuy8IfkQ=="
+    src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.js"
     crossorigin="anonymous"
 ></script>
 

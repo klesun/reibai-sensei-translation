@@ -1,88 +1,119 @@
 import {
     BubbleMatrix,
     collectBubblesStorage,
-    collectNotesStorage,
-    getPageName, NoteMatrix,
+    collectNotesStorage, getPageName,
+    NoteMatrix,
     parseStreamedJson
 } from "../modules/DataParse";
 import {NoteTransaction, PageTransactionBase, TranslationTransaction} from "../modules/Api";
-import {Svg} from "../modules/Dom.js";
 
 const gui = {
-    injected_translations_svg_root: document.getElementById("injected_translations_svg_root")!,
     bubble_text_paths_list: document.getElementById("bubble_text_paths_list")!,
     translators_note_text_path: document.getElementById("translators_note_text_path")!,
-    download_svg_btn: document.getElementById("download_svg_link") as HTMLAnchorElement,
+    download_result_link: document.getElementById("download_result_link") as HTMLAnchorElement,
     src_scan_image: document.getElementById("src_scan_image") as SVGImageElement,
     bubble_texts_list: document.getElementById("bubble_texts_list")!,
     bubble_text_outlines_list: document.getElementById("bubble_text_outlines_list")!,
     output_png_canvas: document.getElementById("output_png_canvas") as HTMLCanvasElement,
+    white_blur_img: document.getElementById("white_blur_img") as HTMLImageElement,
+    status_message_holder: document.getElementById("status_message_holder") as HTMLImageElement,
 };
 
-const makePathId = (tx: TranslationTransaction) => 'path_ocr_bubble_' + tx.ocrBubbleIndex;
+const FONT_SIZE = 12;
+const FONT = FONT_SIZE + 'px Comic Sans MS';
 
-const makeTextNode = (tx: TranslationTransaction, classes: string[]) => Svg('text', {
-    class: [...classes, 'comic-text'].join(" "),
-}, [
-    Svg('textPath', {
-        'href': '#' + makePathId(tx),
-        'xlink:href': '#' + makePathId(tx),
-    }, tx.eng_human)
-]);
+function getLineWidth(text: string) {
+    const ctx = gui.output_png_canvas.getContext('2d')!;
+    ctx.font = FONT;
+    return ctx.measureText(text).width;
+}
 
-// const letterWidthMapping = {};
-// function wrapWords(text: string, boundsWidth: number): string[] {
-//     const paragraphs = text.split('\n').filter(p => p.trim());
-//     return paragraphs.flatMap(paragraph => {
-//         const words = paragraph.split(' ');
-//         const lines = [''];
-//         for (const word of words) {
-//             lines[lines.length - 1] = (lines[lines.length - 1] + ' ' + word).trim();
-//             if (getLineWidth(lines[lines.length - 1]) > boundsWidth) {
-//
-//             }
-//         }
-//     });
-// }
+function wrapWords(text: string, boundsWidth: number): string[] {
+    const paragraphs = text.split('\n').filter(p => p.trim());
+    return paragraphs.flatMap(paragraph => {
+        const words = paragraph.split(' ');
+        const lines = [''];
+        for (const word of words) {
+            const joined = (lines[lines.length - 1] + ' ' + word).trim();
+            const joinedWidth = getLineWidth(joined);
+            if (joinedWidth > boundsWidth) {
+                lines.push(word);
+            } else {
+                lines[lines.length - 1] = joined;
+            }
+        }
+        return lines;
+    });
+}
 
-const makeBubbleText = (tx: TranslationTransaction) => {
-    const minX = tx.bounds.minX - 4;
-    const maxX = tx.bounds.maxX + 4;
-    const minY = tx.bounds.minY + 12;
-    const width = maxX - minX;
-    const pathLines = [];
-    for (let i = 0; i < 10; ++i) {
-        pathLines.push(`M${minX},${minY + 12 * i} H${minX + width}`);
-    }
+const getBubbleDimensions = (tx: TranslationTransaction) => {
+    const minX = tx.bounds.minX - 6;
+    const maxX = tx.bounds.maxX + 6;
+    const width = Math.max(maxX - minX, 48);
+    const centerX = (maxX + minX) / 2;
+    const wrapped = wrapWords(tx.eng_human, width);
+    const minY = tx.bounds.minY;
+    const maxY = tx.bounds.maxY;
+    const height = maxY - minY;
+    const centerY = (maxY + minY) / 2;
+    const startY = centerY - (wrapped.length - 1.5) * FONT_SIZE / 2;
+
     return {
-        pathNode: Svg('path', {
-            id: makePathId(tx),
-            d: pathLines.join(" "),
+        centerX,
+        centerY,
+        width,
+        height,
+        texts: wrapped.map((line, i) => {
+            return {line, x: centerX, y: startY + FONT_SIZE * i};
         }),
-        outlineNode: makeTextNode(tx, ['outline']),
-        textNode: makeTextNode(tx, []),
     };
 };
 
-const compilePage = (translations: Translations, qualifier: PageTransactionBase) => {
+const eraseOldText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction) => {
+    const {centerX, centerY, width, height, texts} = getBubbleDimensions(tx);
+
+    const blurWidth = width * 1.2;
+    const blurHeight = height * 1.5;
+    const xRadius = centerX - blurWidth / 2;
+    const yRadius = centerY - blurHeight / 2;
+    ctx.drawImage(gui.white_blur_img, xRadius, yRadius, blurWidth, blurHeight);
+
+    for (const {x, y, line} of texts) {
+        ctx.strokeText(line, x, y);
+    }
+};
+
+const drawNewText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction) => {
+    const {texts} = getBubbleDimensions(tx);
+
+    for (const {x, y, line} of texts) {
+        ctx.fillText(line, x, y);
+    }
+};
+
+const drawTranslation = (ctx: CanvasRenderingContext2D, translations: Translations, qualifier: PageTransactionBase) => {
     const {bubbleMatrix, noteMatrix} = translations;
     const {volumeNumber, pageIndex}  = qualifier;
 
-    const pageName = getPageName(qualifier);
-    gui.src_scan_image.setAttribute('href', `https://reibai.info/unv/volumes/${pageName}.jpg`);
-    gui.bubble_text_paths_list.innerHTML = '';
-    gui.bubble_text_outlines_list.innerHTML = '';
-    gui.bubble_texts_list.innerHTML = '';
     const transactions = Object.values(bubbleMatrix[volumeNumber]?.[pageIndex] ?? {})
         .filter(tx => !tx.eng_human.trim().toLocaleLowerCase().match(/^x*$/));
+
+    ctx.textAlign = 'center';
     for (const tx of transactions) {
-        const {pathNode, outlineNode, textNode} = makeBubbleText(tx);
-        gui.bubble_text_paths_list.appendChild(pathNode);
-        gui.bubble_text_outlines_list.appendChild(outlineNode);
-        gui.bubble_texts_list.appendChild(textNode);
+        eraseOldText(ctx, tx);
+    }
+    // must be in separate loops to make sure that the white won't erase new text
+    for (const tx of transactions) {
+        drawNewText(ctx, tx);
     }
     const translatorsNote = noteMatrix[volumeNumber]?.[pageIndex]?.text;
-    gui.translators_note_text_path.textContent = !translatorsNote ? '' : 'tr. note: ' + translatorsNote;
+    if (translatorsNote) {
+        ctx.textAlign = 'left';
+        const wrapped = wrapWords(translatorsNote, 685);
+        for (let i = 0; i < wrapped.length; ++i) {
+            ctx.fillText(wrapped[i], 0, 1024 + FONT_SIZE * (i + 1));
+        }
+    }
 };
 
 type Translations = {
@@ -112,35 +143,40 @@ export default async (
 
     const volumeNumber = 1;
     let totalSize = 0;
-    // for (let pageIndex = 0; pageIndex < 156; ++pageIndex) {
-    for (let pageIndex = 74; pageIndex < 75; ++pageIndex) {
+    // for (let pageIndex = 8; pageIndex < 9; ++pageIndex) {
+    for (let pageIndex = 0; pageIndex < 156; ++pageIndex) {
         const qualifier = {volumeNumber, pageIndex};
-        compilePage(translations, qualifier);
-        const svgStr = gui.injected_translations_svg_root.outerHTML;
+        const pageName = getPageName(qualifier);
 
-        const pngUrl = await new Promise((resolve) => {
-            const ctx = gui.output_png_canvas.getContext('2d')!;
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
+        const ctx = gui.output_png_canvas.getContext('2d')!;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
+        // gui.src_scan_image.setAttribute('src', `https://reibai.info/unv/volumes/${pageName}.jpg`);
+        gui.src_scan_image.setAttribute('src', `../unv/volumes/${pageName}.jpg`);
+        const pngUrl = await new Promise<string>((resolve) => {
             gui.src_scan_image.onload = () => {
-                gui.output_png_canvas.getContext('2d')!.drawImage(gui.src_scan_image, 0, 0);
-                const img = new Image();
-                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr));
-                img.onload = () => {
-                    ctx.drawImage(img, 0, 0);
-                    resolve(gui.output_png_canvas.toDataURL());
-                };
+                ctx.drawImage(gui.src_scan_image, 0, 0);
+                ctx.font = FONT;
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 8;
+                ctx.fillStyle = 'black';
+                drawTranslation(ctx, translations, qualifier);
+                resolve(gui.output_png_canvas.toDataURL());
             };
         });
 
-        const svgFileName = 'reibai_v' + volumeNumber + '_p' + pageIndex + '.png';
+        const pngFileName = 'reibai_v' + ("0" + volumeNumber).slice(-2) + '_p' + ("00" + pageIndex).slice(-3) + '.png';
         const base64 = pngUrl.slice('data:image/png;base64,'.length);
-        zip.file(svgFileName, base64, {base64: true});
+        zip.file(pngFileName, base64, {base64: true});
         totalSize += base64.length;
+        gui.status_message_holder.textContent = 'Produced ' + pngFileName + ' ' + (base64.length / 1024 / 1024).toFixed(2) + ' MiB';
     }
-    console.log("zipping " + totalSize);
+
+    gui.status_message_holder.textContent = 'Output images produced, generating zip file, ' + (totalSize / 1024 / 1024).toFixed(2) + ' MiB';
+
     zip.generateAsync({type: 'blob'}).then(content => {
-        gui.download_svg_btn.download = 'reibai_sinsei_eng_v' + volumeNumber + '.zip';
-        gui.download_svg_btn.setAttribute('href', URL.createObjectURL(content));
+        gui.download_result_link.download = 'reibai_sensei_eng_v' + ("0" + volumeNumber).slice(-2) + '.zip';
+        gui.download_result_link.setAttribute('href', URL.createObjectURL(content));
+        gui.status_message_holder.textContent = 'zip file is ready for download!';
     });
 };
