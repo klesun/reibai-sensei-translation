@@ -189,7 +189,7 @@ export default async (
     gui.status_message_holder.textContent = 'Output images produced, generating zip file, ' + (totalSize / 1024 / 1024).toFixed(2) + ' MiB';
 
     zip.generateAsync({type: 'blob'}).then(content => {
-        gui.download_result_link.download = 'reibai_sensei_eng_v' + ("0" + volumeNumber).slice(-2) + '.zip';
+        gui.download_result_link.download = 'reibai_sensei_eng.zip';
         gui.download_result_link.setAttribute('href', URL.createObjectURL(content));
         gui.status_message_holder.textContent = 'zip file is ready for download!';
     });
