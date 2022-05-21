@@ -47,7 +47,7 @@
     const fetchingUnrecognizedBubbles = fetch('../assets/unrecognized_bubble_transactions.json');
     const fetchingNotes = fetch('../assets/translator_notes_transactions.json');
     whenTsBrowser.then(tsBrowser => tsBrowser.loadModule('./compile_images.ts'))
-        .then(module => module.default(fetchingBubbles, fetchingNotes))
+        .then(module => module.default(fetchingBubbles, fetchingUnrecognizedBubbles, fetchingNotes))
         .catch(error => {
             console.error(error);
             alert('Script execution failed - ' + error);

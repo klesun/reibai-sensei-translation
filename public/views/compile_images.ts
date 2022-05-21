@@ -49,7 +49,7 @@ function wrapWords(text: string, boundsWidth: number): string[] {
     });
 }
 
-const getBubbleDimensions = (tx: TranslationTransaction) => {
+const getBubbleDimensions = (tx: TranslationTransaction | UnrecognizedTranslationTransaction) => {
     const minX = tx.bounds.minX - 6;
     const maxX = tx.bounds.maxX + 6;
     const width = Math.max(maxX - minX, 48);
@@ -72,7 +72,7 @@ const getBubbleDimensions = (tx: TranslationTransaction) => {
     };
 };
 
-const eraseOldText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction) => {
+const eraseOldText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction | UnrecognizedTranslationTransaction) => {
     const {centerX, centerY, width, height, texts} = getBubbleDimensions(tx);
 
     const blurWidth = width * 1.2;
@@ -86,7 +86,7 @@ const eraseOldText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction)
     }
 };
 
-const drawNewText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction) => {
+const drawNewText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction | UnrecognizedTranslationTransaction) => {
     const {texts} = getBubbleDimensions(tx);
 
     for (const {x, y, line} of texts) {
@@ -95,18 +95,20 @@ const drawNewText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction) 
 };
 
 const drawTranslation = (ctx: CanvasRenderingContext2D, translations: Translations, qualifier: PageTransactionBase) => {
-    const {bubbleMatrix, noteMatrix} = translations;
+    const {bubbleMatrix, unrecognizedBubbleMatrix, noteMatrix} = translations;
     const {volumeNumber, pageIndex}  = qualifier;
 
     const transactions = Object.values(bubbleMatrix[volumeNumber]?.[pageIndex] ?? {})
         .filter(tx => !tx.eng_human.trim().toLocaleLowerCase().match(/^x*$/));
+    const unrecognized = Object.values(unrecognizedBubbleMatrix[volumeNumber]?.[pageIndex] ?? {});
+    const allTransactions: (TranslationTransaction | UnrecognizedTranslationTransaction)[] = [...transactions, ...unrecognized];
 
     ctx.textAlign = 'center';
-    for (const tx of transactions) {
+    for (const tx of allTransactions) {
         eraseOldText(ctx, tx);
     }
     // must be in separate loops to make sure that the white won't erase new text
-    for (const tx of transactions) {
+    for (const tx of allTransactions) {
         drawNewText(ctx, tx);
     }
     const translatorsNote = noteMatrix[volumeNumber]?.[pageIndex]?.text;
@@ -135,43 +137,53 @@ export default async (
         .then(txs => collectNotesStorage(txs));
 
     const bubbleMapping = await whenBubbleMapping;
+    const unrecognizedBubbleMapping = await whenUnrecognizedBubbleMapping;
     const noteMapping = await whenNoteMapping;
     const translations = {
         bubbleMatrix: bubbleMapping.matrix,
+        unrecognizedBubbleMatrix: unrecognizedBubbleMapping.matrix,
         noteMatrix: noteMapping.matrix,
     };
 
     const zip = new JSZip();
 
-    const volumeNumber = 1;
+    const volumes = [
+        {volumeNumber: 1, pages: 156},
+        {volumeNumber: 2, pages: 156},
+        {volumeNumber: 3, pages: 156},
+        {volumeNumber: 4, pages: 158},
+        {volumeNumber: 5, pages: 158},
+    ];
+
     let totalSize = 0;
-    // for (let pageIndex = 8; pageIndex < 9; ++pageIndex) {
-    for (let pageIndex = 0; pageIndex < 156; ++pageIndex) {
-        const qualifier = {volumeNumber, pageIndex};
-        const pageName = getPageName(qualifier);
+    for (const {volumeNumber, pages} of volumes) {
+        for (let pageIndex = 0; pageIndex < pages; ++pageIndex) {
+            const qualifier = {volumeNumber, pageIndex};
+            const pageName = getPageName(qualifier);
 
-        const ctx = gui.output_png_canvas.getContext('2d')!;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
-        // gui.src_scan_image.setAttribute('src', `https://reibai.info/unv/volumes/${pageName}.jpg`);
-        gui.src_scan_image.setAttribute('src', `../unv/volumes/${pageName}.jpg`);
-        const pngUrl = await new Promise<string>((resolve) => {
-            gui.src_scan_image.onload = () => {
-                ctx.drawImage(gui.src_scan_image, 0, 0);
-                ctx.font = FONT;
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 8;
-                ctx.fillStyle = 'black';
-                drawTranslation(ctx, translations, qualifier);
-                resolve(gui.output_png_canvas.toDataURL());
-            };
-        });
+            const ctx = gui.output_png_canvas.getContext('2d')!;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
+            // gui.src_scan_image.setAttribute('src', `https://reibai.info/unv/volumes/${pageName}.jpg`);
+            gui.src_scan_image.setAttribute('src', `../unv/volumes/${pageName}.jpg`);
+            const pngUrl = await new Promise<string>((resolve) => {
+                gui.src_scan_image.onload = () => {
+                    ctx.drawImage(gui.src_scan_image, 0, 0);
+                    ctx.font = FONT;
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 8;
+                    ctx.fillStyle = 'black';
+                    drawTranslation(ctx, translations, qualifier);
+                    resolve(gui.output_png_canvas.toDataURL());
+                };
+            });
 
-        const pngFileName = 'reibai_v' + ("0" + volumeNumber).slice(-2) + '_p' + ("00" + pageIndex).slice(-3) + '.png';
-        const base64 = pngUrl.slice('data:image/png;base64,'.length);
-        zip.file(pngFileName, base64, {base64: true});
-        totalSize += base64.length;
-        gui.status_message_holder.textContent = 'Produced ' + pngFileName + ' ' + (base64.length / 1024 / 1024).toFixed(2) + ' MiB';
+            const pngFileName = 'reibai_v' + ("0" + volumeNumber).slice(-2) + '_p' + ("00" + pageIndex).slice(-3) + '.png';
+            const base64 = pngUrl.slice('data:image/png;base64,'.length);
+            zip.file(pngFileName, base64, {base64: true});
+            totalSize += base64.length;
+            gui.status_message_holder.textContent = 'Produced ' + pngFileName + ' ' + (base64.length / 1024 / 1024).toFixed(2) + ' MiB';
+        }
     }
 
     gui.status_message_holder.textContent = 'Output images produced, generating zip file, ' + (totalSize / 1024 / 1024).toFixed(2) + ' MiB';

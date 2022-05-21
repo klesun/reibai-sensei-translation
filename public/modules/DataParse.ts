@@ -24,6 +24,7 @@ export type UnrecognizedBubbleMatrix = QualifierMatrix<Record<string, Unrecogniz
 export type NoteMatrix = QualifierMatrix<NoteTransaction>;
 export type Translations = {
     bubbleMatrix: BubbleMatrix,
+    unrecognizedBubbleMatrix: UnrecognizedBubbleMatrix,
     noteMatrix: NoteMatrix,
 };
 
