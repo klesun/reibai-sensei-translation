@@ -271,11 +271,12 @@ export default async (fetchingBubbles: Promise<Response>) => {
     };
 
     whenBubbleMapping.then(...initialStateResponseHandlers);
-    Promise.all([whenBubbleMapping, whenNoteMapping]).then(([bubbles, notes]) => {
-        const displayProfit = () => printMoney(gui, bubbles.matrix, notes.matrix);
-        displayProfit();
-        setInterval(displayProfit, 15000);
-    });
+    Promise.all([whenBubbleMapping, whenUnrecognizedBubbleMapping, whenNoteMapping])
+        .then(([bubbles, unrecognizedBubbles, notes]) => {
+            const displayProfit = () => printMoney(gui, bubbles.matrix, unrecognizedBubbles.matrix, notes.matrix);
+            displayProfit();
+            setInterval(displayProfit, 15000);
+        });
 
     api.submitLocalBackup(localBackup);
 };
