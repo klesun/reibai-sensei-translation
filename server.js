@@ -10,6 +10,7 @@ import submitBubbleUpdate from "./server/api/submitBubbleUpdate.js";
 import submitNoteUpdate from "./server/api/submitNoteUpdate.js";
 import submitLocalBackup from "./server/api/submitLocalBackup.js";
 import submitUnrecognizedBubbleUpdate from "./server/api/submitUnrecognizedBubbleUpdate.js";
+import { createGzip } from 'zlib';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_PATH = path.resolve(__dirname, './public');
@@ -55,7 +56,12 @@ const serveStaticFile = async (req, res) => {
     if (mime) {
         res.setHeader('Content-Type', mime);
     }
-    fsSync.createReadStream(absPath).pipe(res);
+    let outputStream = fsSync.createReadStream(absPath);
+    if (ext === 'json') {
+        res.writeHead(200, {'content-encoding': 'gzip'});
+        outputStream = outputStream.pipe(createGzip());
+    }
+    outputStream.pipe(res);
 };
 
 const EXPECTED_STATUS_CODES = new Set([

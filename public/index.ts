@@ -192,7 +192,7 @@ const updateUrl = (qualifier: PageTransactionBase) => {
     window.history.replaceState(null, "", "?" + urlSearchParams);
 };
 
-export default async (fetchingBubbles: Promise<Response>) => {
+export default async (fetchingBubbles: Promise<string>) => {
     const googleTranslationsPath = './unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath)
         .then(rs => rs.status === 200 ? rs.json() : []);
@@ -213,7 +213,7 @@ export default async (fetchingBubbles: Promise<Response>) => {
 
     const localBackup = getLocalBackupTransactions();
     const whenBubbleMapping = fetchingBubbles
-        .then(rs => parseStreamedJson<TranslationTransaction>(rs))
+        .then(text => JSON.parse(text + 'null]').slice(0, -1))
         .then(txs => prepareBubbleMapping(txs, localBackup.BUBBLE_TRANSLATION, api));
     const whenUnrecognizedBubbleMapping = fetchingUnrecognizedBubbles
         .then(rs => parseStreamedJson<UnrecognizedTranslationTransaction>(rs))

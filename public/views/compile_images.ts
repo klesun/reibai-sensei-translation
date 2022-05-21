@@ -1,11 +1,12 @@
 import type {Translations} from "../modules/DataParse";
 import {
     collectBubblesStorage,
-    collectNotesStorage, getPageName,
+    collectNotesStorage, collectUnrecognizedBubblesStorage, getPageName,
     parseStreamedJson
 } from "../modules/DataParse";
 import type {NoteTransaction, PageTransactionBase, TranslationTransaction} from "../modules/Api";
 import type * as JSZipModule from "../node_modules/jszip/index";
+import type {UnrecognizedTranslationTransaction} from "../modules/Api";
 
 declare const JSZip: JSZipModule;
 
@@ -120,11 +121,15 @@ const drawTranslation = (ctx: CanvasRenderingContext2D, translations: Translatio
 
 export default async (
     fetchingBubbles: Promise<Response>,
+    fetchingUnrecognizedBubbles: Promise<Response>,
     fetchingNotes: Promise<Response>
 ) => {
     const whenBubbleMapping = fetchingBubbles
         .then(rs => parseStreamedJson<TranslationTransaction>(rs))
         .then(txs => collectBubblesStorage(txs));
+    const whenUnrecognizedBubbleMapping = fetchingUnrecognizedBubbles
+        .then(rs => parseStreamedJson<UnrecognizedTranslationTransaction>(rs))
+        .then(txs => collectUnrecognizedBubblesStorage(txs));
     const whenNoteMapping = fetchingNotes
         .then(rs => parseStreamedJson<NoteTransaction>(rs))
         .then(txs => collectNotesStorage(txs));

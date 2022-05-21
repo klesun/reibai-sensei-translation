@@ -67,9 +67,12 @@
 </body>
 
 <script type="module">
+    const whenInitialProgressDataStr = fetch('./assets/translation_update_transactions.json')
+        .then(rs => rs.text());
+
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');
     // const whenTsBrowser = import('./node_modules/ts-browser-klesun/src/ts-browser.js');
-    const whenInitialProgressDataStr = fetch('./assets/translation_update_transactions.json');
+
     whenTsBrowser.then(tsBrowser => tsBrowser.loadModule('./index.ts'))
         .then(indexModule => indexModule.default(whenInitialProgressDataStr))
         .catch(error => {
