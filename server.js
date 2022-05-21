@@ -9,6 +9,7 @@ import { HttpErrorBase } from "@curveball/http-errors";
 import submitBubbleUpdate from "./server/api/submitBubbleUpdate.js";
 import submitNoteUpdate from "./server/api/submitNoteUpdate.js";
 import submitLocalBackup from "./server/api/submitLocalBackup.js";
+import submitUnrecognizedBubbleUpdate from "./server/api/submitUnrecognizedBubbleUpdate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_PATH = path.resolve(__dirname, './public');
@@ -104,6 +105,9 @@ const handleHttpRequestSafe = (req, res) => {
     const url = new URL(req.url, protocol + '://' + req.headers.host);
     if (url.pathname === '/api/submitBubbleUpdate') {
         const whenResult = Promise.resolve(req).then(submitBubbleUpdate);
+        serveJson(whenResult, res);
+    } else if (url.pathname === '/api/submitUnrecognizedBubbleUpdate') {
+        const whenResult = Promise.resolve(req).then(submitUnrecognizedBubbleUpdate);
         serveJson(whenResult, res);
     } else if (url.pathname === '/api/submitNoteUpdate') {
         const whenResult = Promise.resolve(req).then(submitNoteUpdate);

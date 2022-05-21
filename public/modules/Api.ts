@@ -15,6 +15,10 @@ export type TranslationTransactionBase = PageTransactionBase & {
     ocrBubbleIndex: number,
 };
 
+export type UnrecognizedTranslationTransactionBase = PageTransactionBase & {
+    uuid: string,
+};
+
 type TransactionCreationData = {
     /**
      * iso format datetime string, would be needed if server was down for
@@ -56,12 +60,28 @@ export type TranslationTransaction = TranslationTransactionBase & TransactionCre
     note?: string,
 };
 
+export type UnrecognizedTranslationTransaction = UnrecognizedTranslationTransactionBase & TransactionCreationData & {
+    jpn_human?: string,
+    eng_human: string,
+    bounds: {
+        minX: number,
+        minY: number,
+        maxX: number,
+        maxY: number,
+    },
+    deleted?: true,
+};
+
 export type NoteTransaction = PageTransactionBase & TransactionCreationData & {
     text: string,
 }
 
 type submitBubbleUpdate_rq = {
     transactions: TranslationTransaction[],
+};
+
+type submitUnrecognizedBubbleUpdate_rq = {
+    transactions: UnrecognizedTranslationTransaction[],
 };
 
 type submitNoteUpdate_rq = {
@@ -105,9 +125,15 @@ export const getApiToken = async (urlSearchParams: URLSearchParams): Promise<str
     return window.localStorage.getItem('REIBAI_API_TOKEN')!;
 };
 
+export const createUuid = () => {
+    // not very reliable, but whatever
+    return Math.random().toString().replace(".", "");
+};
+
 export type LocalBackup = {
     deviceUid: string,
     BUBBLE_TRANSLATION: TranslationTransaction[],
+    UNRECOGNIZED_BUBBLE_TRANSLATION: UnrecognizedTranslationTransaction[],
     NOTE_TRANSLATION: NoteTransaction[],
 };
 
@@ -124,6 +150,7 @@ const Api = ({api_token}: {api_token: string}) => {
 
     return {
         submitBubbleUpdate: (params: submitBubbleUpdate_rq) => post('/api/submitBubbleUpdate', params),
+        submitUnrecognizedBubbleUpdate: (params: submitUnrecognizedBubbleUpdate_rq) => post('/api/submitUnrecognizedBubbleUpdate', params),
         submitNoteUpdate: (params: submitNoteUpdate_rq) => post('/api/submitNoteUpdate', params),
         submitLocalBackup: (params: LocalBackup) => post('/api/submitLocalBackup', params),
     };
