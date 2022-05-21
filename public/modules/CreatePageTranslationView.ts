@@ -4,6 +4,7 @@ import {Dom, Svg} from "./Dom.js";
 import type {NoteTransaction, PageTransactionBase, TranslationTransaction} from "./Api";
 import {collectBlockText, getBlockBounds, getFontSize} from "./OcrDataAdapter.js";
 import type {BubbleMapping, TranslationsStorage} from "./DataParse";
+import type {NoteMapping} from "./DataParse";
 
 const chunked = function*<T>(items: T[], chunkSize: number): Generator<T[]> {
     for (let i = 0; i < items.length; i += chunkSize) {
@@ -115,13 +116,43 @@ const makeBubbleField = (
 };
 
 let lastFormListener: ((e: Event) => void) | null = null;
+function addBubbleFocusListener(form: HTMLFormElement) {
+    if (lastFormListener) {
+        form.removeEventListener('focus', lastFormListener);
+    }
+    lastFormListener = (evt: Event) => {
+        const target = evt.target as HTMLElement;
+        if (target.hasAttribute('data-block-ocr-index')) {
+            focusBubbleSvg(target.getAttribute('data-block-ocr-index')!);
+        }
+    };
+    form.addEventListener('focus', lastFormListener, true);
+}
+
+function initializeNotesInput(input: HTMLTextAreaElement, noteMapping: NoteMapping, qualifier: PageTransactionBase) {
+    const lastNote = noteMapping.get(qualifier);
+    let lastNoteValue = lastNote ? lastNote.text : '';
+    input.value = lastNoteValue;
+    input.onblur = () => {
+        if (lastNoteValue !== input.value) {
+            lastNoteValue = input.value;
+            const tx: NoteTransaction = {
+                ...qualifier,
+                text: lastNoteValue,
+                sentAt: new Date().toISOString(),
+            };
+            noteMapping.set(tx);
+        }
+    };
+}
+
 export default ({qualifier, blocks, gui, translationsStorage, jpnToEng}: {
     qualifier: PageTransactionBase,
     blocks: IndexedBlock[],
     gui: {
         annotations_svg_root: SVGElement,
         translation_blocks_rows_list: HTMLElement,
-        bubbles_translations_input_form: HTMLElement,
+        bubbles_translations_input_form: HTMLFormElement,
         translator_notes_input: HTMLTextAreaElement,
     },
     translationsStorage: TranslationsStorage,
@@ -130,13 +161,13 @@ export default ({qualifier, blocks, gui, translationsStorage, jpnToEng}: {
     const main = () => {
         gui.annotations_svg_root.innerHTML = '';
         gui.translation_blocks_rows_list.innerHTML = '';
+        gui.translation_blocks_rows_list.innerHTML = '';
 
         for (const block of blocks) {
             const polygon = makeBubbleBoundsRect(block, jpnToEng);
             gui.annotations_svg_root.appendChild(polygon);
         }
 
-        gui.translation_blocks_rows_list.innerHTML = '';
         const CELLS_PER_ROW = 3;
         // TODO: implement arrow navigation for bubbles on image
         for (const rowBlocks of chunked(blocks, CELLS_PER_ROW)) {
@@ -152,32 +183,8 @@ export default ({qualifier, blocks, gui, translationsStorage, jpnToEng}: {
             );
         }
 
-        if (lastFormListener) {
-            gui.bubbles_translations_input_form.removeEventListener('focus', lastFormListener);
-        }
-        lastFormListener = (evt: Event) => {
-            const target = evt.target as HTMLElement;
-            if (target.hasAttribute('data-block-ocr-index')) {
-                focusBubbleSvg(target.getAttribute('data-block-ocr-index')!);
-            }
-        };
-        gui.bubbles_translations_input_form.addEventListener('focus', lastFormListener, true);
-
-        const noteMapping = translationsStorage.notes;
-        const lastNote = noteMapping.get(qualifier);
-        let lastNoteValue = lastNote ? lastNote.text : '';
-        gui.translator_notes_input.value = lastNoteValue;
-        gui.translator_notes_input.onblur = () => {
-            if (lastNoteValue !== gui.translator_notes_input.value) {
-                lastNoteValue = gui.translator_notes_input.value;
-                const tx: NoteTransaction = {
-                    ...qualifier,
-                    text: lastNoteValue,
-                    sentAt: new Date().toISOString(),
-                };
-                noteMapping.set(tx);
-            }
-        };
+        addBubbleFocusListener(gui.bubbles_translations_input_form);
+        initializeNotesInput(gui.translator_notes_input, translationsStorage.notes, qualifier);
 
         const firstInput = gui.translation_blocks_rows_list.querySelector('textarea[data-block-ocr-index]') as HTMLTextAreaElement;
         if (firstInput) {
@@ -185,5 +192,5 @@ export default ({qualifier, blocks, gui, translationsStorage, jpnToEng}: {
         }
     };
 
-    main();
+    return main();
 };
