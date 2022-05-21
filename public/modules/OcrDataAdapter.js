@@ -29,12 +29,7 @@ const hasJapaneseCharacters = (sentence) => {
 
 /**
  * @param {Vertex[]} vertices
- * @return {{
- *     minX: number,
- *     minY: number,
- *     maxX: number,
- *     maxY: number,
- * }}
+ * @return {BlockBounds}
  */
 const getBounds = (vertices) => {
     const xes = vertices

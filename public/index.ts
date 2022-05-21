@@ -1,14 +1,14 @@
 
+import Api, {createUuid} from "./modules/Api";
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
-import Api from "./modules/Api";
-import type {LocalBackup} from "./modules/Api";
+import type {LocalBackup, UnrecognizedTranslationTransaction} from "./modules/Api";
 import type {NoteTransaction, PageTransactionBase} from "./modules/Api";
 import type {TranslationTransaction} from "./modules/Api";
 import {getApiToken} from "./modules/Api";
 import {
     collectBubblesStorage,
-    collectNotesStorage, getPageName,
-    parseStreamedJson
+    collectNotesStorage, collectUnrecognizedBubblesStorage, getPageName,
+    parseStreamedJson, UnrecognizedBubbleMapping
 } from "./modules/DataParse";
 import {printMoney} from "./modules/ProfitCalculation";
 import CreatePageTranslationView from "./modules/CreatePageTranslationView";
@@ -38,23 +38,26 @@ type GoogleSentenceTranslation = {
 };
 
 const BUBBLE_TRANSLATION = 'BUBBLE_TRANSLATION';
+const UNRECOGNIZED_BUBBLE_TRANSLATION = 'UNRECOGNIZED_BUBBLE_TRANSLATION';
 const NOTE_TRANSLATION = 'NOTE_TRANSLATION';
 const APP_DEVICE_UID = 'APP_DEVICE_UID';
 
 const makeBubbleKey = (tx: TranslationTransaction) => {
     return BUBBLE_TRANSLATION + '_' + JSON.stringify([
         tx.volumeNumber, tx.pageIndex, tx.ocrBubbleIndex,
-    ])
+    ]);
 };
+
+const makeUnrecognizedBubbleKey = (tx: UnrecognizedTranslationTransaction) => {
+    return UNRECOGNIZED_BUBBLE_TRANSLATION + '_' + JSON.stringify([
+        tx.volumeNumber, tx.pageIndex, tx.uuid,
+    ]);
+};
+
 const makeNoteKey = (tx: NoteTransaction) => {
     return NOTE_TRANSLATION + '_' + JSON.stringify([
         tx.volumeNumber, tx.pageIndex,
-    ])
-};
-
-const createUuid = () => {
-    // not very reliable, but whatever
-    return Math.random().toString().replace(".", "");
+    ]);
 };
 
 const getLocalBackupTransactions = (): LocalBackup => {
@@ -66,6 +69,7 @@ const getLocalBackupTransactions = (): LocalBackup => {
     const localBackup: LocalBackup = {
         deviceUid: deviceUid,
         BUBBLE_TRANSLATION: [],
+        UNRECOGNIZED_BUBBLE_TRANSLATION: [],
         NOTE_TRANSLATION: [],
     };
     for (let i = 0; i < window.localStorage.length; ++i) {
@@ -76,6 +80,9 @@ const getLocalBackupTransactions = (): LocalBackup => {
         } else if (key!.startsWith(NOTE_TRANSLATION + '_')) {
             const tx = JSON.parse(window.localStorage.getItem(key!)!);
             localBackup.NOTE_TRANSLATION.push(tx);
+        } else if (key!.startsWith(UNRECOGNIZED_BUBBLE_TRANSLATION + '_')) {
+            const tx = JSON.parse(window.localStorage.getItem(key!)!);
+            localBackup.UNRECOGNIZED_BUBBLE_TRANSLATION.push(tx);
         }
     }
     return localBackup;
@@ -84,6 +91,7 @@ const getLocalBackupTransactions = (): LocalBackup => {
 const addLocalBackupTransactions = <
     TTransaction extends
         | TranslationTransaction
+        | UnrecognizedTranslationTransaction
         | NoteTransaction
 >(transactions: TTransaction[], localTransactions: TTransaction[]) => {
     transactions.push(...localTransactions);
@@ -138,6 +146,25 @@ const prepareBubbleMapping = (transactions: TranslationTransaction[], localTrans
     };
 };
 
+const prepareUnrecognizedBubbleMapping = (transactions: UnrecognizedTranslationTransaction[], localTransactions: UnrecognizedTranslationTransaction[], api: Api) => {
+    addLocalBackupTransactions(transactions, getLocalBackupTransactions().UNRECOGNIZED_BUBBLE_TRANSLATION);
+    const { matrix, set, get, getAllAtPage } = collectUnrecognizedBubblesStorage(transactions);
+    return {
+        matrix: matrix,
+        get: get,
+        getAllAtPage: getAllAtPage,
+        set: (tx: UnrecognizedTranslationTransaction) => {
+            set(tx);
+            // just to be safe in case some server transactions fail
+            const localKey = makeUnrecognizedBubbleKey(tx);
+            window.localStorage.setItem(localKey, JSON.stringify(tx));
+            // TODO: make a queue of actions to preserve order and for store failed actions and retry them once 30 seconds or smth
+            api.submitUnrecognizedBubbleUpdate({ transactions: [tx] })
+                .then(...toHandleUpdateResponse(localKey));
+        },
+    };
+};
+
 const prepareNotesMapping = (transactions: NoteTransaction[], localTransactions: NoteTransaction[], api: Api) => {
     addLocalBackupTransactions(transactions, getLocalBackupTransactions().NOTE_TRANSLATION);
     const { matrix, set, get } = collectNotesStorage(transactions);
@@ -170,6 +197,7 @@ export default async (fetchingBubbles: Promise<Response>) => {
     const whenGoogleTranslations = fetch(googleTranslationsPath)
         .then(rs => rs.status === 200 ? rs.json() : []);
     const fetchingNotes = fetch('./assets/translator_notes_transactions.json');
+    const fetchingUnrecognizedBubbles = fetch('./assets/unrecognized_bubble_transactions.json');
 
     const urlSearchParams = new URLSearchParams(window.location.search);
     let api_token: string;
@@ -187,6 +215,9 @@ export default async (fetchingBubbles: Promise<Response>) => {
     const whenBubbleMapping = fetchingBubbles
         .then(rs => parseStreamedJson<TranslationTransaction>(rs))
         .then(txs => prepareBubbleMapping(txs, localBackup.BUBBLE_TRANSLATION, api));
+    const whenUnrecognizedBubbleMapping = fetchingUnrecognizedBubbles
+        .then(rs => parseStreamedJson<UnrecognizedTranslationTransaction>(rs))
+        .then(txs => prepareUnrecognizedBubbleMapping(txs, localBackup.UNRECOGNIZED_BUBBLE_TRANSLATION, api));
     const whenNoteMapping = fetchingNotes
         .then(rs => parseStreamedJson<NoteTransaction>(rs))
         .then(txs => prepareNotesMapping(txs, localBackup.NOTE_TRANSLATION, api));
@@ -215,12 +246,10 @@ export default async (fetchingBubbles: Promise<Response>) => {
         loadingPagesQueue.enqueue(async () => {
             const jsonData = await fetch(jsonPath).then(rs => rs.json());
             const { blocks } = OcrDataAdapter(jsonData);
-            const bubbleMapping = await whenBubbleMapping;
-            const noteMapping = await whenNoteMapping;
-            const translationsStorage = {
-                bubbles: bubbleMapping,
-                notes: noteMapping,
-            };
+            const bubbles = await whenBubbleMapping;
+            const unrecognizedBubbles = await whenUnrecognizedBubbleMapping;
+            const notes = await whenNoteMapping;
+            const translationsStorage = { bubbles, unrecognizedBubbles, notes };
             CreatePageTranslationView({qualifier, blocks, gui, translationsStorage, jpnToEng});
             gui.status_message_holder.textContent = "Ready for input";
         }).catch(error => {
@@ -245,7 +274,7 @@ export default async (fetchingBubbles: Promise<Response>) => {
     Promise.all([whenBubbleMapping, whenNoteMapping]).then(([bubbles, notes]) => {
         const displayProfit = () => printMoney(gui, bubbles.matrix, notes.matrix);
         displayProfit();
-        setInterval(displayProfit, 5000);
+        setInterval(displayProfit, 15000);
     });
 
     api.submitLocalBackup(localBackup);

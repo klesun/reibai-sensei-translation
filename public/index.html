@@ -63,12 +63,14 @@
 
 <script type="module">
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');
+    // const whenTsBrowser = import('./node_modules/ts-browser-klesun/src/ts-browser.js');
     const whenInitialProgressDataStr = fetch('./assets/translation_update_transactions.json');
     whenTsBrowser.then(tsBrowser => tsBrowser.loadModule('./index.ts'))
         .then(indexModule => indexModule.default(whenInitialProgressDataStr))
         .catch(error => {
             console.error(error);
             alert('Script execution failed - ' + error);
+            throw error;
         });
 </script>
 
@@ -80,6 +82,9 @@
         fill: rgba(226, 231, 234, 0.19);
         stroke: #afafaf8c;
         cursor: pointer;
+    }
+    .block-polygon[data-unrecognized-bubble-uuid] {
+        fill: rgba(235, 171, 55, 0.09);
     }
     .block-polygon:hover:not(.focused-block-polygon) {
         stroke: #aae3e3;
