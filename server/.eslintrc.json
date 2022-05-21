@@ -4,6 +4,9 @@
   "plugins": [
     "@typescript-eslint"
   ],
+  "parserOptions": {
+    "project": "../tsconfig.json"
+  },
   "rules": {
     "prefer-const": "error",
     "semi": ["error", "always"],

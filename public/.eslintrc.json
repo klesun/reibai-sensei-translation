@@ -4,13 +4,21 @@
   "plugins": [
     "@typescript-eslint"
   ],
+  "parserOptions": {
+    "project": "../tsconfig.json"
+  },
   "rules": {
-    "indent": ["error", 4],
     "prefer-const": "error",
+    "semi": ["error", "always"],
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
     "no-undef": "error",
     "no-mixed-spaces-and-tabs": "error",
     "no-prototype-builtins": "error",
-    "@typescript-eslint/consistent-type-imports": "error"
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/no-implicit-any-catch": "error",
+    "@typescript-eslint/no-explicit-any": ["error", {
+      "fixToUnknown": true
+    }]
   },
   "env": {
     "browser": true
