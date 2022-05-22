@@ -8,18 +8,19 @@ import {getApiToken} from "./modules/Api";
 import {
     collectBubblesStorage,
     collectNotesStorage, collectUnrecognizedBubblesStorage, getPageName,
-    parseStreamedJson, UnrecognizedBubbleMapping
+    parseStreamedJson,
 } from "./modules/DataParse";
 import {printMoney} from "./modules/ProfitCalculation";
 import CreatePageTranslationView from "./modules/CreatePageTranslationView";
 import ActionsQueue from "./modules/ActionsQueue";
+import CompileImage from "./modules/CompileImage";
 
 const gui = {
     annotations_svg_root: document.getElementById('annotations_svg_root')! as unknown as SVGElement,
     node_json_holder: document.getElementById('node_json_holder')!,
     selected_block_text_holder: document.getElementById('selected_block_text_holder')!,
     translation_blocks_rows_list: document.getElementById('translation_blocks_rows_list')!,
-    current_page_img: document.getElementById('current_page_img')!,
+    current_page_img: document.getElementById('current_page_img')! as HTMLImageElement,
     page_input: document.getElementById('page_input') as HTMLInputElement,
     volume_input: document.getElementById('volume_input') as HTMLInputElement,
     page_select_form: document.getElementById('page_select_form')!,
@@ -30,6 +31,8 @@ const gui = {
     words_translated_counter: document.getElementById('words_translated_counter')!,
     money_earned_counter: document.getElementById('money_earned_counter')!,
     add_bubble_btn: document.getElementById('add_bubble_btn')!,
+    output_png_canvas: document.getElementById("output_png_canvas") as HTMLCanvasElement,
+    white_blur_img: document.getElementById("white_blur_img") as HTMLImageElement,
 };
 
 type GoogleSentenceTranslation = {
@@ -252,6 +255,14 @@ export default async (fetchingBubbles: Promise<string>) => {
             const translationsStorage = { bubbles, unrecognizedBubbles, notes };
             CreatePageTranslationView({qualifier, blocks, gui, translationsStorage, jpnToEng});
             gui.status_message_holder.textContent = "Ready for input";
+            CompileImage({qualifier, translations: {
+                bubbleMatrix: bubbles.matrix,
+                unrecognizedBubbleMatrix: unrecognizedBubbles.matrix,
+                noteMatrix: notes.matrix,
+            }, gui: {
+                ...gui,
+                src_scan_image: gui.current_page_img,
+            }});
         }).catch(error => {
             gui.status_message_holder.textContent = "Failed to load " + pageName + " - " + error;
         });

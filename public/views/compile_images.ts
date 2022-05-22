@@ -1,4 +1,3 @@
-import type {Translations} from "../modules/DataParse";
 import {
     collectBubblesStorage,
     collectNotesStorage, collectUnrecognizedBubblesStorage, getPageName,

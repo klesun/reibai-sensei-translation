@@ -11,7 +11,7 @@ export default async ({qualifier, translations, gui}: {
     qualifier: PageTransactionBase,
     translations: Translations
     gui: {
-        src_scan_image: SVGImageElement,
+        src_scan_image: HTMLImageElement | SVGImageElement,
         output_png_canvas: HTMLCanvasElement,
         white_blur_img: HTMLImageElement,
     },
@@ -93,7 +93,8 @@ export default async ({qualifier, translations, gui}: {
 
         const transactions = Object.values(bubbleMatrix[volumeNumber]?.[pageIndex] ?? {})
             .filter(tx => !tx.eng_human.trim().toLocaleLowerCase().match(/^x*$/));
-        const unrecognized = Object.values(unrecognizedBubbleMatrix[volumeNumber]?.[pageIndex] ?? {});
+        const unrecognized = Object.values(unrecognizedBubbleMatrix[volumeNumber]?.[pageIndex] ?? {})
+            .filter(u => !u.deleted);
         const allTransactions: (TranslationTransaction | UnrecognizedTranslationTransaction)[] = [...transactions, ...unrecognized];
 
         ctx.textAlign = 'center';
