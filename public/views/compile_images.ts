@@ -3,7 +3,7 @@ import {
     collectNotesStorage, collectUnrecognizedBubblesStorage, getPageName,
     parseStreamedJson
 } from "../modules/DataParse";
-import type {NoteTransaction, PageTransactionBase, TranslationTransaction} from "../modules/Api";
+import type {NoteTransaction, TranslationTransaction} from "../modules/Api";
 import type * as JSZipModule from "../node_modules/jszip/index";
 import type {UnrecognizedTranslationTransaction} from "../modules/Api";
 import CompileImage from "../modules/CompileImage";
