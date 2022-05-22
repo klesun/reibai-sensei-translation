@@ -7,6 +7,12 @@ import type {TranslationTransaction, UnrecognizedTranslationTransaction} from ".
 const FONT_SIZE = 12;
 const FONT = FONT_SIZE + 'px Comic Sans MS';
 
+const SUPERSCRIPTS = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹'];
+
+function toSuperscript(number: number) {
+    return (number + '').split('').map(d => SUPERSCRIPTS[+d]).join('');
+}
+
 export default async ({qualifier, translations, gui}: {
     qualifier: PageTransactionBase,
     translations: Translations
@@ -91,8 +97,18 @@ export default async ({qualifier, translations, gui}: {
         const {bubbleMatrix, unrecognizedBubbleMatrix, noteMatrix} = translations;
         const {volumeNumber, pageIndex}  = qualifier;
 
+        const remarks: string[] = [];
         const transactions = Object.values(bubbleMatrix[volumeNumber]?.[pageIndex] ?? {})
-            .filter(tx => !tx.eng_human.trim().toLocaleLowerCase().match(/^x*$/));
+            .filter(tx => !tx.eng_human.trim().toLocaleLowerCase().match(/^x*$/))
+            .map(tx => {
+                if (tx.note && tx.note.trim()) {
+                    remarks.push(tx.note);
+                    return {...tx, eng_human: tx.eng_human + toSuperscript(remarks.length)};
+                } else {
+                    return tx;
+                }
+            });
+
         const unrecognized = Object.values(unrecognizedBubbleMatrix[volumeNumber]?.[pageIndex] ?? {})
             .filter(u => !u.deleted);
         const allTransactions: (TranslationTransaction | UnrecognizedTranslationTransaction)[] = [...transactions, ...unrecognized];
@@ -105,12 +121,13 @@ export default async ({qualifier, translations, gui}: {
         for (const tx of allTransactions) {
             drawNewText(ctx, tx);
         }
-        const translatorsNote = noteMatrix[volumeNumber]?.[pageIndex]?.text;
-        if (translatorsNote) {
-            ctx.textAlign = 'left';
-            const wrapped = wrapWords(translatorsNote, 685);
-            for (let i = 0; i < wrapped.length; ++i) {
-                ctx.fillText(wrapped[i], 0, 1024 + FONT_SIZE * (i + 1));
+
+        ctx.textAlign = 'left';
+        let lineIndex = 0;
+        for (let j = 0; j < remarks.length; ++j) {
+            const wrapped = wrapWords(toSuperscript(j + 1) + ' ' + remarks[j], 685);
+            for (const line of wrapped) {
+                ctx.fillText(line, 0, 1024 + FONT_SIZE * lineIndex++);
             }
         }
     };
