@@ -51,10 +51,8 @@
         <button id="go_to_next_page_button" style="margin: 12px; font-size: 24px;" onclick="alert('Loading, please wait!')">→ Next!</button>
     </div>
     <hr/>
-    <p>
-        <b>An update: you can now specify unrecognized bubbles by clicking on them on the image.</b>
-        I'll go through the notes you left so far and will add the blocks in previous chapters.
-    </p>
+    <p>An update: you can now specify unrecognized bubbles by clicking on them on the image.</p>
+    <p>You can also specify translator notes using a button above input field of any bubble. I'll go through the notes you left so far and will categorize the free-form remarks in previous chapters</p>
     <canvas id="output_png_canvas" width="685" height="1084"></canvas>
     <hr/>
     <p>Hey, Ngelzzz!</p>
@@ -187,5 +185,8 @@
     }
     #annotations_svg_root {
         cursor: copy;
+    }
+    .add-remark-button[title] {
+        color: red;
     }
 </style>

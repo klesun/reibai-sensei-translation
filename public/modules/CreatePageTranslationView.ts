@@ -12,6 +12,7 @@ import type {BlockBounds, BubbleMapping, TranslationsStorage} from "./DataParse"
 import type {NoteMapping} from "./DataParse";
 import {createUuid} from "./Api";
 import type {UnrecognizedBubbleMapping} from "./DataParse";
+import CreateBubbleInputField, {focusBubbleSvg} from "./CreateBubbleInputField";
 
 const CELLS_PER_ROW = 3;
 
@@ -19,13 +20,6 @@ const chunked = function*<T>(items: T[], chunkSize: number): Generator<T[]> {
     for (let i = 0; i < items.length; i += chunkSize) {
         yield items.slice(i, i + chunkSize);
     }
-};
-
-const focusBubbleSvg = (ocrIndex: number | string) => {
-    [...document.querySelectorAll('.focused-block-polygon')]
-        .forEach(poly => poly.classList.toggle('focused-block-polygon', false));
-    [...document.querySelectorAll('polygon[data-block-ocr-index="' + ocrIndex + '"]')]
-        .forEach(poly => poly.classList.toggle('focused-block-polygon', true));
 };
 
 function makePointsStr(bounds: BlockBounds): string {
@@ -65,68 +59,6 @@ const makeBubbleBoundsRect = (block: IndexedBlock, jpnToEng: Map<string, string>
     ]);
 
     return polygon;
-};
-
-const makeBubbleField = (
-    block: IndexedBlock,
-    qualifier: PageTransactionBase,
-    jpnToEng: Map<string, string>,
-    bubbleMapping: BubbleMapping
-): HTMLElement => {
-    const jpnSentence = collectBlockText(block).trimEnd();
-    const engSentence = jpnToEng.get(jpnSentence);
-
-    const txBase = {
-        ...qualifier,
-        ocrBubbleIndex: block.ocrIndex,
-        jpn_ocr: jpnSentence,
-        bounds: getBlockBounds(block),
-    } as const;
-    let lastValue = '';
-    const textarea = Dom('textarea', {
-        type: 'text',
-        placeholder: engSentence || '', rows: 3,
-        'data-block-ocr-index': block.ocrIndex,
-        // TODO: check if blur triggers when you close browser
-        onblur: (evt: Event) => {
-            if (lastValue !== textarea.value) {
-                lastValue = textarea.value;
-                const tx: TranslationTransaction = {
-                    ...txBase,
-                    eng_human: lastValue,
-                    sentAt: new Date().toISOString(),
-                };
-                bubbleMapping.set(tx);
-            }
-        },
-    });
-
-    const lastTranslation = bubbleMapping.get(txBase);
-    if (lastTranslation) {
-        textarea.value = lastTranslation.eng_human + textarea.value;
-        lastValue = textarea.value;
-    }
-
-    return Dom('div', {
-        class: 'sentence-block',
-        onmousedown: () => focusBubbleSvg(block.ocrIndex),
-    }, [
-        Dom('div', {style: 'flex: 1'}),
-        Dom('div', {class: 'ocred-text-block'}, [
-            Dom('div', {}, jpnSentence),
-            Dom('div', {style: 'display: flex; align-items: end'}, [
-                Dom('div', {}, [
-                    Dom('div', {class: 'font-size-holder'}, getFontSize(block) + 'px'),
-                    Dom('div', {
-                        class: 'confidence-holder',
-                        title: 'Recognized Text Confidence'
-                    }, block.confidence.toFixed(2)),
-                ]),
-                Dom('div', {class: 'bubble-number-holder'}, '#' + block.ocrIndex),
-            ]),
-        ]),
-        textarea,
-    ]);
 };
 
 const makeUnrecognizedBubbleRect = (
@@ -266,7 +198,7 @@ export default ({qualifier, blocks, gui, translationsStorage, jpnToEng}: {
         }
 
         for (const rowBlocks of chunked(blocks, CELLS_PER_ROW)) {
-            const blockCells = rowBlocks.map(block => makeBubbleField(
+            const blockCells = rowBlocks.map(block => CreateBubbleInputField(
                 block, qualifier, jpnToEng, translationsStorage.bubbles
             ));
             const remainderCells = [];
