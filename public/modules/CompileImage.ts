@@ -123,9 +123,9 @@ export default async ({qualifier, translations, gui}: {
         }
 
         ctx.textAlign = 'left';
-        let lineIndex = 0;
+        let lineIndex = 1;
         for (let j = 0; j < remarks.length; ++j) {
-            const wrapped = wrapWords(toSuperscript(j + 1) + ' ' + remarks[j], 685);
+            const wrapped = wrapWords(toSuperscript(j + 1) + ' t/n: ' + remarks[j], 685);
             for (const line of wrapped) {
                 ctx.fillText(line, 0, 1024 + FONT_SIZE * lineIndex++);
             }

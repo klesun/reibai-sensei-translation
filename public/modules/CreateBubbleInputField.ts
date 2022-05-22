@@ -75,7 +75,7 @@ export default (
                             type: 'button',
                             onclick: (event: MouseEvent) => {
                                 const oldRemark = bubbleMapping.get(txBase)?.note;
-                                const newRemark = prompt('T/N:', oldRemark);
+                                const newRemark = prompt('t/n:', oldRemark);
                                 if (newRemark !== null) {
                                     updateState({note: newRemark});
                                     if (!newRemark.trim()) {
