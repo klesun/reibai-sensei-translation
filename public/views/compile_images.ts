@@ -32,7 +32,7 @@ function getLineWidth(text: string) {
 }
 
 function wrapWords(text: string, boundsWidth: number): string[] {
-    const paragraphs = text.split('\n').filter(p => p.trim());
+    const paragraphs = text.trim().split('\n');
     return paragraphs.flatMap(paragraph => {
         const words = paragraph.split(' ');
         const lines = [''];
@@ -76,10 +76,12 @@ const eraseOldText = (ctx: CanvasRenderingContext2D, tx: TranslationTransaction 
     const {centerX, centerY, width, height, texts} = getBubbleDimensions(tx);
 
     const blurWidth = width * 1.2;
-    const blurHeight = height * 1.5;
+    const blurHeight = height * 1.2;
     const xRadius = centerX - blurWidth / 2;
     const yRadius = centerY - blurHeight / 2;
-    ctx.drawImage(gui.white_blur_img, xRadius, yRadius, blurWidth, blurHeight);
+    if (!tx.eng_human.includes('\n\n')) {
+        ctx.drawImage(gui.white_blur_img, xRadius, yRadius, blurWidth, blurHeight);
+    }
 
     for (const {x, y, line} of texts) {
         ctx.strokeText(line, x, y);
