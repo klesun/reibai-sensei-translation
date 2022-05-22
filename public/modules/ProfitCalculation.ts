@@ -10,6 +10,11 @@ const getAllTranslatedWords = (bubbleMatrix: BubbleMatrix, unrecognizedBubbles: 
                         .map(w => bubble.volumeNumber + ' ' + bubble.pageIndex + ': ' + w);
                     allTranslatedWords.push(...words);
                 }
+                if (bubble.note && bubble.note.trim()) {
+                    const words = bubble.note.trim().split(/\s+/)
+                        .map(w => bubble.volumeNumber + ' ' + bubble.pageIndex + ': ' + w);
+                    allTranslatedWords.push(...words);
+                }
             }
         }
     }

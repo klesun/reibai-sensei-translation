@@ -78,7 +78,11 @@ export default (
                                 const newRemark = prompt('T/N:', oldRemark);
                                 if (newRemark !== null) {
                                     updateState({note: newRemark});
-                                    (event.target as HTMLButtonElement).setAttribute('title', newRemark);
+                                    if (!newRemark.trim()) {
+                                        (event.target as HTMLButtonElement).removeAttribute('title');
+                                    } else {
+                                        (event.target as HTMLButtonElement).setAttribute('title', newRemark);
+                                    }
                                 }
                             },
                         }, '🏷'),

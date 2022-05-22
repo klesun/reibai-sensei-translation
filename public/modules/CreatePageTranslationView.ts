@@ -4,11 +4,10 @@ import {Dom, Svg} from "./Dom.js";
 import type {
     NoteTransaction,
     PageTransactionBase,
-    TranslationTransaction,
     UnrecognizedTranslationTransactionBase,
 } from "./Api";
-import {collectBlockText, getBlockBounds, getFontSize} from "./OcrDataAdapter.js";
-import type {BlockBounds, BubbleMapping, TranslationsStorage} from "./DataParse";
+import {collectBlockText, getBlockBounds} from "./OcrDataAdapter.js";
+import type {BlockBounds, TranslationsStorage} from "./DataParse";
 import type {NoteMapping} from "./DataParse";
 import {createUuid} from "./Api";
 import type {UnrecognizedBubbleMapping} from "./DataParse";
