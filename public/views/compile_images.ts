@@ -32,6 +32,8 @@ export default async (
     const whenNoteMapping = fetchingNotes
         .then(rs => parseStreamedJson<NoteTransaction>(rs))
         .then(txs => collectNotesStorage(txs));
+    const volumes = await fetch('./../assets/volumes_index.json')
+        .then(rs => rs.json());
 
     const bubbleMapping = await whenBubbleMapping;
     const unrecognizedBubbleMapping = await whenUnrecognizedBubbleMapping;
@@ -44,22 +46,17 @@ export default async (
 
     const zip = new JSZip();
 
-    const volumes = [
-        {volumeNumber: 1, pages: 156},
-        {volumeNumber: 2, pages: 156},
-        {volumeNumber: 3, pages: 156},
-        {volumeNumber: 4, pages: 158},
-        {volumeNumber: 5, pages: 158},
-    ];
-
     let totalSize = 0;
-    for (const {volumeNumber, pages} of volumes) {
+    for (const {volumeNumber, pages, chapters} of volumes) {
         for (let pageIndex = 0; pageIndex < pages; ++pageIndex) {
+            const chapterNumber = chapters
+                .filter(c => c.startPage >= pageIndex + 1)
+                .map(c => c.chapter) ?? 0;
             const qualifier = {volumeNumber, pageIndex};
             await CompileImage({qualifier, translations, gui});
             const pngUrl = gui.output_png_canvas.toDataURL();
 
-            const pngFileName = 'reibai_v' + ("0" + volumeNumber).slice(-2) + '_p' + ("00" + pageIndex).slice(-3) + '.png';
+            const pngFileName = 'reibai_v' + ('0' + volumeNumber).slice(-2) + '_c' + ('00' + chapterNumber).slice(-3) + '_p' + ("00" + pageIndex).slice(-3) + '.png';
             const base64 = pngUrl.slice('data:image/png;base64,'.length);
             zip.file(pngFileName, base64, {base64: true});
             totalSize += base64.length;

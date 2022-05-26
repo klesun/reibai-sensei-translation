@@ -1,6 +1,7 @@
 [
     {
         "volume": 1,
+        "pages": 156,
         "chapters": [
             {"chapter": 1, "startPage": 5, "englishTitle": "Kibayashi Curse Appears", "japaneseTitle": "木林理現る"},
             {"chapter": 2, "startPage": 15, "englishTitle": "The Darkness of the Black Cat", "japaneseTitle": "黒ねこの暗黒"},
@@ -19,6 +20,7 @@
     },
     {
         "volume": 2,
+        "pages": 156,
         "chapters": [
             {"chapter": 12, "startPage": 7, "englishTitle": "Forehead", "japaneseTitle": "おでこ"},
             {"chapter": 13, "startPage": 29, "englishTitle": "Mihoro Mitoko-san's Situation", "japaneseTitle": "美幌素子さんの事情"},
@@ -35,6 +37,7 @@
     },
     {
         "volume": 3,
+        "pages": 156,
         "chapters": [
             {"chapter": 23, "startPage": 7, "englishTitle": "Wanibuchi-kun and Nobunaga-chan", "japaneseTitle": "鰐淵くんと信長ちゃん"},
             {"chapter": 24, "startPage": 29, "englishTitle": "Wakamiya Hinako-san", "japaneseTitle": "若宮ひな子さん"},
