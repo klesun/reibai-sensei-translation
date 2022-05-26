@@ -52,7 +52,7 @@ export default async (
         for (let pageIndex = 0; pageIndex < pages; ++pageIndex) {
             const chapterNumber = chapters
                 .filter(c => c.startPage >= pageIndex + 1)
-                .map(c => c.chapter) ?? 0;
+                .map(c => c.chapter)[0] ?? 0;
             const qualifier = {volumeNumber, pageIndex};
             await CompileImage({qualifier, translations, gui});
             const pngUrl = gui.output_png_canvas.toDataURL();
