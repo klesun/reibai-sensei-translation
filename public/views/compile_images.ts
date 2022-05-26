@@ -47,7 +47,8 @@ export default async (
     const zip = new JSZip();
 
     let totalSize = 0;
-    for (const {volumeNumber, pages, chapters} of volumes) {
+    for (const {volume, pages, chapters} of volumes) {
+        const volumeNumber = volume;
         for (let pageIndex = 0; pageIndex < pages; ++pageIndex) {
             const chapterNumber = chapters
                 .filter(c => c.startPage >= pageIndex + 1)
