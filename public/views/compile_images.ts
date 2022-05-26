@@ -59,7 +59,7 @@ export default async (
 
             const pngFileName = 'reibai' +
                 '_v' + ('0' + volumeNumber).slice(-2) +
-                '_c' + ('00' + Math.floor(chapterNumber) + (chapterNumber % 1 + '').slice(1)).slice(-3) +
+                '_c' + ('00' + Math.floor(chapterNumber)).slice(-3) + (chapterNumber % 1 + '').slice(1) +
                 '_p' + ("00" + pageIndex).slice(-3) + '.png';
             const base64 = pngUrl.slice('data:image/png;base64,'.length);
             zip.file(pngFileName, base64, {base64: true});
