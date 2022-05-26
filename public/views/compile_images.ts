@@ -51,7 +51,7 @@ export default async (
         const volumeNumber = volume;
         for (let pageIndex = 0; pageIndex < pages; ++pageIndex) {
             const chapterNumber = chapters
-                .filter(c => c.startPage >= pageIndex + 1)
+                .filter(c => c.startPage <= pageIndex + 1)
                 .map(c => c.chapter)[0] ?? 0;
             const qualifier = {volumeNumber, pageIndex};
             await CompileImage({qualifier, translations, gui});
