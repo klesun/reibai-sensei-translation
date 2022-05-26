@@ -57,7 +57,10 @@ export default async (
             await CompileImage({qualifier, translations, gui});
             const pngUrl = gui.output_png_canvas.toDataURL();
 
-            const pngFileName = 'reibai_v' + ('0' + volumeNumber).slice(-2) + '_c' + ('00' + chapterNumber).slice(-3) + '_p' + ("00" + pageIndex).slice(-3) + '.png';
+            const pngFileName = 'reibai' +
+                '_v' + ('0' + volumeNumber).slice(-2) +
+                '_c' + ('00' + Math.floor(chapterNumber) + (chapterNumber % 1 + '').slice(1)).slice(-3) +
+                '_p' + ("00" + pageIndex).slice(-3) + '.png';
             const base64 = pngUrl.slice('data:image/png;base64,'.length);
             zip.file(pngFileName, base64, {base64: true});
             totalSize += base64.length;
@@ -68,7 +71,7 @@ export default async (
     gui.status_message_holder.textContent = 'Output images produced, generating zip file, ' + (totalSize / 1024 / 1024).toFixed(2) + ' MiB';
 
     zip.generateAsync({type: 'blob'}).then(content => {
-        gui.download_result_link.download = 'reibai_sensei_eng.zip';
+        gui.download_result_link.download = 'reibai_sensei_eng_v' + volumes[0].volume + '-' + volumes.slice(-1)[0].volume + '.zip';
         gui.download_result_link.setAttribute('href', URL.createObjectURL(content));
         gui.status_message_holder.textContent = 'zip file is ready for download!';
     });
