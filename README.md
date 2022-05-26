@@ -1,3 +1,5 @@
+Read on bato.to: https://mto.to/series/93466/honto-ni-atta-reibai-sensei
+
 ## Honto ni Atta! Reibai Sensei manga translation
 ### The web tool and the content produced with it
 
