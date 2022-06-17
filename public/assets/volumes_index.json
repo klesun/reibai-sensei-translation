@@ -51,5 +51,55 @@
             {"chapter": 30.1, "startPage": 148, "englishTitle": "The Science Department Head's Loyalty", "japaneseTitle": "科学部部長の忠心"},
             {"chapter": 30.2, "startPage": 152, "englishTitle": "Popularity Contest?", "japaneseTitle": "人気投票"}
         ]
+    },
+    {
+        "volume": 4,
+        "pages": 158,
+        "chapters": [
+            {"chapter": 31, "startPage": 9, "englishTitle": "Pool", "japaneseTitle": "プール"},
+            {"chapter": 32, "startPage": 25, "englishTitle": "On The Way Home In The Middle of summer", "japaneseTitle": "真夏の帰り道"},
+            {"chapter": 33, "startPage": 37, "englishTitle": "Nagashi Soumen", "japaneseTitle": "流しそうめん"},
+            {"chapter": 34, "startPage": 53, "englishTitle": "Sadness of the Second Semester", "japaneseTitle": "2学期の悲しみ"},
+            {"chapter": 35, "startPage": 59, "englishTitle": "Emma-san Has Blue Eyes", "japaneseTitle": "エマさんは青い瞳"},
+            {"chapter": 36, "startPage": 77, "englishTitle": "Kendo Club With Chinatsu", "japaneseTitle": "チナツと剣道部"},
+            {"chapter": 37, "startPage": 93, "englishTitle": "Just Like A Devil", "japaneseTitle": "悪魔のような"},
+            {"chapter": 38, "startPage": 105, "englishTitle": "School Trip", "japaneseTitle": "修学旅行"},
+            {"chapter": 39, "startPage": 126, "englishTitle": "Our Halloween", "japaneseTitle": "オレたちのハロウィン"},
+            {"chapter": 40, "startPage": 141, "englishTitle": "Advanced Beings", "japaneseTitle": "高尚な生物たち"}
+        ]
+    },
+    {
+        "volume": 5,
+        "pages": 158,
+        "chapters": [
+            {"chapter": 41, "startPage": 7, "englishTitle": "Burning Cultural Festival", "japaneseTitle": "燃えろ文化祭"},
+            {"chapter": 42, "startPage": 29, "englishTitle": "Lovely Principal", "japaneseTitle": "ラブリー校長"},
+            {"chapter": 43, "startPage": 39, "englishTitle": "Ceremony", "japaneseTitle": "セレモニー"},
+            {"chapter": 44, "startPage": 61, "englishTitle": "Santa Clause and Friends", "japaneseTitle": "サンタクロースたち"},
+            {"chapter": 45, "startPage": 71, "englishTitle": "Platoon Revival", "japaneseTitle": "し隊、再来"},
+            {"chapter": 46, "startPage": 81, "englishTitle": "A Happy New Year", "japaneseTitle": "賀正"},
+            {"chapter": 47, "startPage": 101, "englishTitle": "The Platoon Counterattacks", "japaneseTitle": "し隊、逆襲"},
+            {"chapter": 48, "startPage": 113, "englishTitle": "New Year With Queues", "japaneseTitle": "行列のできる新年"},
+            {"chapter": 49, "startPage": 127, "englishTitle": "Chocolate Fight", "japaneseTitle": "チョコレートファイト"},
+            {"chapter": 50, "startPage": 147, "englishTitle": "Setsubun", "japaneseTitle": "節分会"}
+        ]
+    },
+    {
+        "volume": 6,
+        "pages": 156,
+        "chapters": [
+            {"chapter": 51, "startPage": 7, "englishTitle": "Futomaki", "japaneseTitle": "ふとまき"},
+            {"chapter": 52, "startPage": 17, "englishTitle": "The Zashiki Warashi Came", "japaneseTitle": "座敷わらしがやってきた"},
+            {"chapter": 53, "startPage": 39, "englishTitle": "Kuroneko vs Platoon", "japaneseTitle": "黒ねこし隊"},
+            {"chapter": 54, "startPage": 52, "englishTitle": "Cherry Blossom Season", "japaneseTitle": "桜色の季節"},
+            {"chapter": 55, "startPage": 61, "englishTitle": "Insect Catching", "japaneseTitle": "虫捕り"},
+            {"chapter": 56, "startPage": 79, "englishTitle": "Your Name", "japaneseTitle": "君の名は"},
+            {"chapter": 57, "startPage": 88, "englishTitle": "Nobunaga Cooking", "japaneseTitle": "信長クッキング"},
+            {"chapter": 58, "startPage": 103, "englishTitle": "The Truth", "japaneseTitle": "第第"},
+            {"chapter": 59, "startPage": 111, "englishTitle": "Game Time", "japaneseTitle": "ゲームの時間"},
+            {"chapter": 60, "startPage": 129, "englishTitle": "Late Afternoon Astral Projection", "japaneseTitle": "昼下がりの幽体離脱"},
+            {"chapter": 60.1, "startPage": 148, "englishTitle": "Rambo Angry Priestess Experience", "japaneseTitle": "ランボー怒りの巫女体験"},
+            {"chapter": 60.2, "startPage": 152, "englishTitle": "", "japaneseTitle": "おまけマンガオブザアシ"}
+        ]
     }
 ]
