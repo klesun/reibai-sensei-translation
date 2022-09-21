@@ -13,7 +13,7 @@ import submitUnrecognizedBubbleUpdate from "./server/api/submitUnrecognizedBubbl
 import { createGzip } from 'zlib';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PUBLIC_PATH = path.resolve(__dirname, './public');
+const PUBLIC_PATH = path.resolve(__dirname, './docs');
 
 class HttpError extends Error {
     constructor(statusCode, message) {
