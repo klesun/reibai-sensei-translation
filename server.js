@@ -58,7 +58,12 @@ const serveStaticFile = async (req, res) => {
     }
     let outputStream = fsSync.createReadStream(absPath);
     if (ext === 'json') {
-        res.writeHead(200, {'content-encoding': 'gzip'});
+        res.writeHead(200, {
+            'content-encoding': 'gzip',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': '*',
+            'Access-Control-Allow-Headers': '*',
+        });
         outputStream = outputStream.pipe(createGzip());
     }
     outputStream.pipe(res);
@@ -87,7 +92,12 @@ const setResponseError = (res, error) => {
 
 const serveJson = (whenResult, res) => {
     whenResult
-        .finally(() => res.setHeader('content-type', 'application/json'))
+        .finally(() => {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', '*');
+            res.setHeader('Access-Control-Allow-Headers', '*');
+            res.setHeader('content-type', 'application/json');
+        })
         .then(result => {
             const payload = JSON.stringify(result);
             res.write(payload);
@@ -109,10 +119,6 @@ const serveJson = (whenResult, res) => {
 const handleHttpRequestSafe = (req, res) => {
     const { protocol } = req;
     const url = new URL(req.url, protocol + '://' + req.headers.host);
-
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', '*');
-    res.setHeader('Access-Control-Allow-Headers', '*');
 
     if (url.pathname === '/api/submitBubbleUpdate') {
         const whenResult = Promise.resolve(req).then(submitBubbleUpdate);

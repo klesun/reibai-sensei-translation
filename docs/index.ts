@@ -241,9 +241,9 @@ export default async (fetchingBubbles: Promise<string>) => {
         updateUrl(qualifier);
         const pageName = getPageName(qualifier);
 
-        gui.current_page_img.setAttribute('src', "./unv/volumes/" + pageName + ".jpg");
+        gui.current_page_img.setAttribute('src', "http://torr.rent:25944/unv/volumes/" + pageName + ".jpg");
 
-        const jsonPath = './assets/ocred_volumes/' + pageName + '.jpg.json';
+        const jsonPath = 'http://torr.rent:25944/assets/ocred_volumes/' + pageName + '.jpg.json';
 
         gui.status_message_holder.textContent = "Loading " + pageName + "...";
         loadingPagesQueue.enqueue(async () => {
