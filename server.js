@@ -111,8 +111,8 @@ const handleHttpRequestSafe = (req, res) => {
     const url = new URL(req.url, protocol + '://' + req.headers.host);
 
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
 
     if (url.pathname === '/api/submitBubbleUpdate') {
         const whenResult = Promise.resolve(req).then(submitBubbleUpdate);
