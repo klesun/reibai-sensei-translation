@@ -5,8 +5,8 @@ import { promises as fs } from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const main = async () => {
-    const jpnJson = await fs.readFile(__dirname + '/../public/unv/sentences_ocr.json', 'utf8');
-    const engTxt = await fs.readFile(__dirname + '/../public/unv/sentences_english.txt', 'utf8');
+    const jpnJson = await fs.readFile(__dirname + '/../docs/unv/sentences_ocr.json', 'utf8');
+    const engTxt = await fs.readFile(__dirname + '/../docs/unv/sentences_english.txt', 'utf8');
 
     const jpnSentences = JSON.parse(jpnJson);
     const engSentences = engTxt.trimEnd().split('\n');

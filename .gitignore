@@ -1,7 +1,7 @@
 /.idea
 /node_modules
 /package-lock.json
-/public/package-lock.json
-/public/node_modules
+/docs/package-lock.json
+/docs/node_modules
 /unv
-/public/unv
+/docs/unv

@@ -6,7 +6,7 @@ import {getAuthorizedUser} from "../Auth.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const TARGET_PATH = __dirname + '/../../public/assets/translation_update_transactions.json';
+const TARGET_PATH = __dirname + '/../../docs/assets/translation_update_transactions.json';
 
 /**
  * @param {IncomingMessage} req

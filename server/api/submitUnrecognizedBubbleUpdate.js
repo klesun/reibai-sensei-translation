@@ -6,7 +6,7 @@ import {getAuthorizedUser} from "../Auth.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const TARGET_PATH = __dirname + '/../../public/assets/unrecognized_bubble_transactions.json';
+const TARGET_PATH = __dirname + '/../../docs/assets/unrecognized_bubble_transactions.json';
 
 /**
  * @param {IncomingMessage} req

@@ -10,9 +10,9 @@ async function main() {
 
     for (let volumeNumber = 1; volumeNumber <= 20; ++volumeNumber) {
         const dirName = 'v' + ('00' + volumeNumber).slice(-2);
-        const imgDirPath = __dirname + '/../public/unv/volumes/' + dirName;
+        const imgDirPath = __dirname + '/../docs/unv/volumes/' + dirName;
         const imgNames = await fs.readdir(imgDirPath);
-        const ocredDirPath = __dirname + '/../public/assets/ocred_volumes_with_language_hints/' + dirName;
+        const ocredDirPath = __dirname + '/../docs/assets/ocred_volumes_with_language_hints/' + dirName;
         await fs.mkdir(ocredDirPath, {recursive: true});
         for (const imgName of imgNames) {
             const imgPath = imgDirPath + '/' + imgName;

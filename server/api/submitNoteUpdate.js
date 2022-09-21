@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const TARGET_PATH = __dirname + '/../../public/assets/translator_notes_transactions.json';
+const TARGET_PATH = __dirname + '/../../docs/assets/translator_notes_transactions.json';
 
 /**
  * @param {IncomingMessage} req

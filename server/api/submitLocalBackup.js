@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const TARGET_DIR = __dirname + '/../../public/assets/local_backups';
+const TARGET_DIR = __dirname + '/../../docs/assets/local_backups';
 
 const submitLocalBackup = async (req) => {
     const userName = getAuthorizedUser(req);

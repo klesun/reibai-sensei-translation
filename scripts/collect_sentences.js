@@ -1,20 +1,20 @@
 
 import { promises as fs } from 'fs';
-import OcrDataAdapter, {collectBlockText} from "../public/modules/OcrDataAdapter.js";
+import OcrDataAdapter, {collectBlockText} from "../docs/modules/OcrDataAdapter.js";
 import {dirname} from "path";
 import {fileURLToPath} from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
- * @typedef {import('./../public/typing/CloudVisionApi.d.ts').CloudVisionApiResponse} CloudVisionApiResponse
+ * @typedef {import('./../docs/typing/CloudVisionApi.d.ts').CloudVisionApiResponse} CloudVisionApiResponse
  */
 
 const main = async () => {
     const sentences = new Set();
     for (let volumeNumber = 1; volumeNumber <= 20; ++volumeNumber) {
         const dirName = 'v' + ('00' + volumeNumber).slice(-2);
-        const ocredDirPath = __dirname + '/../public/assets/ocred_volumes/' + dirName;
+        const ocredDirPath = __dirname + '/../docs/assets/ocred_volumes/' + dirName;
         console.log(ocredDirPath);
         const ocrNames = await fs.readdir(ocredDirPath);
         for (const ocrName of ocrNames) {
