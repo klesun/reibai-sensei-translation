@@ -196,11 +196,11 @@ const updateUrl = (qualifier: PageTransactionBase) => {
 };
 
 export default async (fetchingBubbles: Promise<string>) => {
-    const googleTranslationsPath = './unv/google_translations.json';
+    const googleTranslationsPath = 'http://torr.rent:25944/unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath)
         .then(rs => rs.status === 200 ? rs.json() : []);
-    const fetchingNotes = fetch('./assets/translator_notes_transactions.json');
-    const fetchingUnrecognizedBubbles = fetch('./assets/unrecognized_bubble_transactions.json');
+    const fetchingNotes = fetch('http://torr.rent:25944/assets/translator_notes_transactions.json');
+    const fetchingUnrecognizedBubbles = fetch('http://torr.rent:25944/assets/unrecognized_bubble_transactions.json');
 
     const urlSearchParams = new URLSearchParams(window.location.search);
     let api_token: string;

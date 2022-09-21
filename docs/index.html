@@ -67,7 +67,7 @@
 </body>
 
 <script type="module">
-    const whenInitialProgressDataStr = fetch('./assets/translation_update_transactions.json')
+    const whenInitialProgressDataStr = fetch('http://torr.rent:25944/assets/translation_update_transactions.json')
         .then(rs => rs.text());
 
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');

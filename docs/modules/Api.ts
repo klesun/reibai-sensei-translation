@@ -139,7 +139,7 @@ export type LocalBackup = {
 
 const Api = ({api_token}: {api_token: string}) => {
     const post = (route: string, params: Record<string, unknown>) => {
-        return fetch(route, {
+        return fetch("http://torr.rent:25944/" + route, {
             method: 'POST',
             body: JSON.stringify(params),
             headers: {
