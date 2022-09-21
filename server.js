@@ -60,10 +60,6 @@ const serveStaticFile = async (req, res) => {
     if (ext === 'json') {
         res.writeHead(200, {
             'content-encoding': 'gzip',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': '*',
-            'Access-Control-Allow-Headers': '*',
-            'Access-Control-Allow-Credentials': true,
         });
         outputStream = outputStream.pipe(createGzip());
     }
@@ -94,10 +90,6 @@ const setResponseError = (res, error) => {
 const serveJson = (whenResult, res) => {
     whenResult
         .finally(() => {
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('Access-Control-Allow-Methods', '*');
-            res.setHeader('Access-Control-Allow-Headers', '*');
-            res.setHeader('Access-Control-Allow-Credentials', true);
             res.setHeader('content-type', 'application/json');
         })
         .then(result => {
@@ -119,6 +111,16 @@ const serveJson = (whenResult, res) => {
  * @param {http.ServerResponse} res
  */
 const handleHttpRequestSafe = (req, res) => {
+    if (req.method === 'OPTIONS') {
+        res.statusCode = 200;
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', '*');
+        res.setHeader('Access-Control-Allow-Headers', '*');
+        res.setHeader('Access-Control-Allow-Credentials', true);
+        res.end();
+        return;
+    }
+
     const { protocol } = req;
     const url = new URL(req.url, protocol + '://' + req.headers.host);
 
