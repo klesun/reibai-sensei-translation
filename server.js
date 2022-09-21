@@ -63,6 +63,7 @@ const serveStaticFile = async (req, res) => {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': '*',
             'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Credentials': true,
         });
         outputStream = outputStream.pipe(createGzip());
     }
@@ -96,6 +97,7 @@ const serveJson = (whenResult, res) => {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Access-Control-Allow-Methods', '*');
             res.setHeader('Access-Control-Allow-Headers', '*');
+            res.setHeader('Access-Control-Allow-Credentials', true);
             res.setHeader('content-type', 'application/json');
         })
         .then(result => {
