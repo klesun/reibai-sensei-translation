@@ -109,6 +109,11 @@ const serveJson = (whenResult, res) => {
 const handleHttpRequestSafe = (req, res) => {
     const { protocol } = req;
     const url = new URL(req.url, protocol + '://' + req.headers.host);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
     if (url.pathname === '/api/submitBubbleUpdate') {
         const whenResult = Promise.resolve(req).then(submitBubbleUpdate);
         serveJson(whenResult, res);
