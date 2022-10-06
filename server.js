@@ -3,6 +3,7 @@ import * as url from 'url';
 import * as fsSync from 'fs';
 import * as path from 'path';
 import * as http from 'http';
+import * as https from 'https';
 import {dirname} from "path";
 import {fileURLToPath} from "url";
 import { HttpErrorBase } from "@curveball/http-errors";
@@ -157,5 +158,11 @@ const handleHttpRequestSafe = (req, res) => {
 
 const PORT = 36418;
 
-http.createServer(handleHttpRequestSafe)
-    .listen(PORT, () => console.log('Now you can open http://localhost:' + PORT + '/index.html in your browser ;)'));
+const server = https.createServer({
+    key: fsSync.readFileSync('/etc/letsencrypt/live/torr.rent/privkey.pem'),
+    cert: fsSync.readFileSync('/etc/letsencrypt/live/torr.rent/fullchain.pem'),
+}, handleHttpRequestSafe).listen(36418, '0.0.0.0', () => {
+    console.log('listening https://torr.rent:36418');
+});
+server.keepAliveTimeout = 3 * 60 * 1000; // 3 minutes, for fast browsing
+
