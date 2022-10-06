@@ -196,11 +196,11 @@ const updateUrl = (qualifier: PageTransactionBase) => {
 };
 
 export default async (fetchingBubbles: Promise<string>) => {
-    const googleTranslationsPath = 'http://torr.rent:25944/unv/google_translations.json';
+    const googleTranslationsPath = 'http://torr.rent:36418/unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath)
         .then(rs => rs.status === 200 ? rs.json() : []);
-    const fetchingNotes = fetch('http://torr.rent:25944/assets/translator_notes_transactions.json');
-    const fetchingUnrecognizedBubbles = fetch('http://torr.rent:25944/assets/unrecognized_bubble_transactions.json');
+    const fetchingNotes = fetch('http://torr.rent:36418/assets/translator_notes_transactions.json');
+    const fetchingUnrecognizedBubbles = fetch('http://torr.rent:36418/assets/unrecognized_bubble_transactions.json');
 
     const urlSearchParams = new URLSearchParams(window.location.search);
     let api_token: string;
@@ -241,9 +241,9 @@ export default async (fetchingBubbles: Promise<string>) => {
         updateUrl(qualifier);
         const pageName = getPageName(qualifier);
 
-        gui.current_page_img.setAttribute('src', "http://torr.rent:25944/unv/volumes/" + pageName + ".jpg");
+        gui.current_page_img.setAttribute('src', "http://torr.rent:36418/unv/volumes/" + pageName + ".jpg");
 
-        const jsonPath = 'http://torr.rent:25944/assets/ocred_volumes/' + pageName + '.jpg.json';
+        const jsonPath = 'http://torr.rent:36418/assets/ocred_volumes/' + pageName + '.jpg.json';
 
         gui.status_message_holder.textContent = "Loading " + pageName + "...";
         loadingPagesQueue.enqueue(async () => {

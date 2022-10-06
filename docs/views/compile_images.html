@@ -43,9 +43,9 @@
 
 <script type="module">
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');
-    const fetchingBubbles = fetch('http://torr.rent:25944/assets/translation_update_transactions.json');
-    const fetchingUnrecognizedBubbles = fetch('http://torr.rent:25944/assets/unrecognized_bubble_transactions.json');
-    const fetchingNotes = fetch('http://torr.rent:25944/assets/translator_notes_transactions.json');
+    const fetchingBubbles = fetch('http://torr.rent:36418/assets/translation_update_transactions.json');
+    const fetchingUnrecognizedBubbles = fetch('http://torr.rent:36418/assets/unrecognized_bubble_transactions.json');
+    const fetchingNotes = fetch('http://torr.rent:36418/assets/translator_notes_transactions.json');
     whenTsBrowser.then(tsBrowser => tsBrowser.loadModule('./compile_images.ts'))
         .then(module => module.default(fetchingBubbles, fetchingUnrecognizedBubbles, fetchingNotes))
         .catch(error => {
