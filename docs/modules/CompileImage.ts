@@ -138,7 +138,7 @@ export default async ({qualifier, translations, gui}: {
         const ctx = gui.output_png_canvas.getContext('2d')!;
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
-        gui.src_scan_image.setAttribute('src', `http://torr.rent:36418/unv/volumes/${pageName}.jpg`);
+        gui.src_scan_image.setAttribute('src', `https://torr.rent:36418/unv/volumes/${pageName}.jpg`);
         // gui.src_scan_image.setAttribute('src', `../unv/volumes/${pageName}.jpg`);
         await new Promise<void>((resolve) => {
             gui.src_scan_image.onload = () => {
