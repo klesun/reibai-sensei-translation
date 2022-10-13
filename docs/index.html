@@ -77,7 +77,8 @@
         .then(indexModule => indexModule.default(whenInitialProgressDataStr))
         .catch(error => {
             console.error(error);
-            alert('Script execution failed - ' + error);
+            document.body.setAttribute('data-status', 'ERROR');
+            document.getElementById("status_message_holder").textContent = 'Script execution failed - ' + error;
             throw error;
         });
 </script>
