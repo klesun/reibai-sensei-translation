@@ -12,6 +12,7 @@ import submitNoteUpdate from "./server/api/submitNoteUpdate.js";
 import submitLocalBackup from "./server/api/submitLocalBackup.js";
 import submitUnrecognizedBubbleUpdate from "./server/api/submitUnrecognizedBubbleUpdate.js";
 import { createGzip } from 'zlib';
+import {readJson} from "./server/utils/Http.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_PATH = path.resolve(__dirname, './docs');
@@ -69,6 +70,12 @@ const serveStaticFile = async (req, res) => {
         outputStream = outputStream.pipe(createGzip());
     }
     outputStream.pipe(res);
+};
+
+const handleDiscordInteraction = async (req) => {
+    const params = await readJson(req);
+    console.log("ololo interaction", params);
+    return { type: 1 };
 };
 
 const EXPECTED_STATUS_CODES = new Set([
@@ -145,6 +152,9 @@ const handleHttpRequestSafe = (req, res) => {
     } else if (url.pathname === '/api/submitLocalBackup') {
         const whenResult = Promise.resolve(req).then(submitLocalBackup);
         serveJson(whenResult, res);
+    } else if (url.pathname === '/api/handleDiscordInteraction') {
+	const whenResult = Promise.resolve(req).then(handleDiscordInteraction);
+	serveJson(whenResult, res);
     } else {
         serveStaticFile(req, res).catch(exc => {
             res.statusCode = exc?.statusCode || 500;
