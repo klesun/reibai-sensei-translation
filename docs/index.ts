@@ -1,5 +1,5 @@
 
-import Api, {createUuid} from "./modules/Api";
+import Api, {API_ENDPOINT, createUuid} from "./modules/Api";
 import OcrDataAdapter from "./modules/OcrDataAdapter.js";
 import type {LocalBackup, UnrecognizedTranslationTransaction} from "./modules/Api";
 import type {NoteTransaction, PageTransactionBase} from "./modules/Api";
@@ -196,11 +196,13 @@ const updateUrl = (qualifier: PageTransactionBase) => {
 };
 
 export default async (fetchingBubbles: Promise<string>) => {
-    const googleTranslationsPath = 'https://torr.rent:36418/unv/google_translations.json';
+    const googleTranslationsPath = API_ENDPOINT + '/unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath)
         .then(rs => rs.status === 200 ? rs.json() : []);
-    const fetchingNotes = fetch('https://torr.rent:36418/assets/translator_notes_transactions.json');
-    const fetchingUnrecognizedBubbles = fetch('https://torr.rent:36418/assets/unrecognized_bubble_transactions.json');
+    const whenVolumesIndex = fetch(API_ENDPOINT + "/assets/volumes_index.json")
+        .then(rs => rs.json());
+    const fetchingNotes = fetch(API_ENDPOINT + '/assets/translator_notes_transactions.json');
+    const fetchingUnrecognizedBubbles = fetch(API_ENDPOINT + '/assets/unrecognized_bubble_transactions.json');
 
     const urlSearchParams = new URLSearchParams(window.location.search);
     let api_token: string;
@@ -229,6 +231,7 @@ export default async (fetchingBubbles: Promise<string>) => {
     const jpnToEng = new Map(
         googleTranslations.map(r => [r.jpn_ocr, r.eng_google])
     );
+    const volumesIndex = await whenVolumesIndex;
 
     const loadingPagesQueue = ActionsQueue();
 
@@ -241,9 +244,7 @@ export default async (fetchingBubbles: Promise<string>) => {
         updateUrl(qualifier);
         const pageName = getPageName(qualifier);
 
-        gui.current_page_img.setAttribute('src', "https://torr.rent:36418/unv/volumes/" + pageName + ".jpg");
-
-        const jsonPath = 'https://torr.rent:36418/assets/ocred_volumes/' + pageName + '.jpg.json';
+        const jsonPath = API_ENDPOINT + '/assets/ocred_volumes/' + pageName + '.jpg.json';
 
         gui.status_message_holder.textContent = "Loading " + pageName + "...";
         loadingPagesQueue.enqueue(async () => {
@@ -262,7 +263,7 @@ export default async (fetchingBubbles: Promise<string>) => {
             }, gui: {
                 ...gui,
                 src_scan_image: gui.current_page_img,
-            }});
+            }, pageId: volumesIndex[volumeNumber - 1]?.pageIds[pageIndex]});
         }).catch(error => {
             gui.status_message_holder.textContent = "Failed to load " + pageName + " - " + error;
         });

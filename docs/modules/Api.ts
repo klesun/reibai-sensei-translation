@@ -99,6 +99,9 @@ function bufferToHex (buffer: ArrayBuffer) {
         .join("");
 }
 
+// export const API_ENDPOINT = "https://torr.rent:36418";
+export const API_ENDPOINT = "http://localhost:36418";
+
 export const getApiToken = async (urlSearchParams: URLSearchParams): Promise<string> => {
     if (urlSearchParams.has('api_token')) {
         window.localStorage.setItem('REIBAI_API_TOKEN', urlSearchParams.get('api_token')!);
@@ -139,7 +142,7 @@ export type LocalBackup = {
 
 const Api = ({api_token}: {api_token: string}) => {
     const post = (route: string, params: Record<string, unknown>) => {
-        return fetch("https://torr.rent:36418" + route, {
+        return fetch(API_ENDPOINT + route, {
             method: 'POST',
             body: JSON.stringify(params),
             headers: {

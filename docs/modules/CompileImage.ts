@@ -2,7 +2,7 @@ import type {PageTransactionBase} from "./Api";
 import type { Translations} from "./DataParse";
 import {getPageName} from "./DataParse";
 import type {TranslationTransaction, UnrecognizedTranslationTransaction} from "./Api";
-
+import {API_ENDPOINT} from "./Api";
 
 const FONT_SIZE = 12;
 const FONT = FONT_SIZE + 'px Comic Sans MS';
@@ -13,7 +13,8 @@ function toSuperscript(number: number) {
     return (number + '').split('').map(d => SUPERSCRIPTS[+d]).join('');
 }
 
-export default async ({qualifier, translations, gui}: {
+export default async ({pageId, qualifier, translations, gui}: {
+    pageId?: string,
     qualifier: PageTransactionBase,
     translations: Translations
     gui: {
@@ -138,8 +139,12 @@ export default async ({qualifier, translations, gui}: {
         const ctx = gui.output_png_canvas.getContext('2d')!;
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
-        gui.src_scan_image.setAttribute('src', `https://torr.rent:36418/unv/volumes/${pageName}.jpg`);
-        // gui.src_scan_image.setAttribute('src', `../unv/volumes/${pageName}.jpg`);
+
+        const imageUrl = pageId
+            ? "https://drive.google.com/uc?export=view&id=" + pageId
+            : API_ENDPOINT + `/unv/volumes/${pageName}.jpg`;
+        gui.src_scan_image.setAttribute('src', imageUrl);
+
         await new Promise<void>((resolve) => {
             gui.src_scan_image.onload = () => {
                 ctx.drawImage(gui.src_scan_image, 0, 0);
