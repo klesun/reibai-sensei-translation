@@ -14,7 +14,7 @@ function toSuperscript(number: number) {
 }
 
 export default async ({pageId, qualifier, translations, gui}: {
-    pageId?: string,
+    pageId: string,
     qualifier: PageTransactionBase,
     translations: Translations
     gui: {
@@ -134,15 +134,11 @@ export default async ({pageId, qualifier, translations, gui}: {
     };
 
     const main = async () => {
-        const pageName = getPageName(qualifier);
-
         const ctx = gui.output_png_canvas.getContext('2d')!;
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
 
-        const imageUrl = pageId
-            ? "https://drive.google.com/uc?export=view&id=" + pageId
-            : API_ENDPOINT + `/unv/volumes/${pageName}.jpg`;
+        const imageUrl = "https://drive.google.com/uc?export=view&id=" + pageId;
         gui.src_scan_image.setAttribute('src', imageUrl);
 
         await new Promise<void>((resolve) => {

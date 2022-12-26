@@ -42,10 +42,13 @@
 ></script>
 
 <script type="module">
+    // const API_ENDPOINT = "http://localhost:36418";
+    const API_ENDPOINT = "https://ololo-4dk5v5gk4a-uc.a.run.app";
+
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');
-    const fetchingBubbles = fetch('https://torr.rent:36418/assets/translation_update_transactions.json');
-    const fetchingUnrecognizedBubbles = fetch('https://torr.rent:36418/assets/unrecognized_bubble_transactions.json');
-    const fetchingNotes = fetch('https://torr.rent:36418/assets/translator_notes_transactions.json');
+    const fetchingBubbles = fetch(API_ENDPOINT + '/assets/translation_update_transactions.json');
+    const fetchingUnrecognizedBubbles = fetch(API_ENDPOINT + '/assets/unrecognized_bubble_transactions.json');
+    const fetchingNotes = fetch(API_ENDPOINT + '/assets/translator_notes_transactions.json');
     whenTsBrowser.then(tsBrowser => tsBrowser.loadModule('./compile_images.ts'))
         .then(module => module.default(fetchingBubbles, fetchingUnrecognizedBubbles, fetchingNotes))
         .catch(error => {

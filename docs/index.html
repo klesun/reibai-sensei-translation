@@ -6,8 +6,7 @@
 
 <body data-status="LOADING">
     <div id="status_message_holder">Loading, please wait...</div>
-    <h2 style="text-align: center; margin: 36px;">Hi. The server is temporary down for a couple of days... maybe weeks. I'll let you know when it's back up. Sorry for the inconveniences!</h2>
-    <div class="split-view" style="display: none">
+    <div class="split-view">
         <div style="position: relative">
             <img id="current_page_img" style="min-width: 685px; min-height: 1024px"/>
             <svg id="annotations_svg_root" style="position: absolute; left: 0" width="685" height="1024"></svg>
@@ -68,7 +67,10 @@
 </body>
 
 <script type="module">
-    const whenInitialProgressDataStr = fetch('https://torr.rent:36418/assets/translation_update_transactions.json')
+    // const API_ENDPOINT = "http://localhost:36418";
+    const API_ENDPOINT = "https://ololo-4dk5v5gk4a-uc.a.run.app";
+
+    const whenInitialProgressDataStr = fetch(API_ENDPOINT + '/assets/translation_update_transactions.json')
         .then(rs => rs.text());
 
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');

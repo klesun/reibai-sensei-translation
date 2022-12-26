@@ -1,0 +1,42 @@
+<body>
+    <h2>Hello. Here is the index of raw scans image files on the google drive:</h2>
+    <textarea rows="40" cols="80" id="collected-result"></textarea>
+</body>
+
+<script type="module">
+    const API_KEY = 'hujREDACTEDhuj';
+    const RAWS_ROOT_DIR_ID = "1DvhyRBf5JbEUzy2NBhgJ-n79fCKxSekr";
+
+    async function listDirectoryFiles(directoryId) {
+        const query = `'${directoryId}' in parents`;
+        const endpoint = "https://www.googleapis.com/drive/v3/files";
+        const files = [];
+
+        let nextPageToken = undefined;
+        do {
+            const response = await fetch(endpoint + "?" + new URLSearchParams({
+                key: API_KEY, q: query, ...!nextPageToken ? {} : { pageToken: nextPageToken },
+            })).then(rs => rs.json());
+
+            files.push(...response.files);
+            nextPageToken = response.nextPageToken;
+        } while (nextPageToken);
+
+        return files.sort((a,b) => a.name < b.name ? -1 : +1);
+    }
+
+    const indexedVolumes = [];
+
+    const volumes = await listDirectoryFiles(RAWS_ROOT_DIR_ID);
+
+    const volumeToWhenFiles = volumes.map(v => listDirectoryFiles(v.id));
+    for (let volumeNumber = 1; volumeNumber <= volumes.length; ++volumeNumber) {
+        indexedVolumes[volumeNumber - 1] = { volume: volumeNumber, pagesIds: [], ocrIds: [] };
+        const pages = await volumeToWhenFiles[volumeNumber - 1];
+        for (let pageNumber = 0; pageNumber < pages.length; ++pageNumber) {
+            indexedVolumes[volumeNumber - 1].pagesIds[pageNumber] = pages[pageNumber].id;
+        }
+    }
+
+    document.getElementById("collected-result").value = JSON.stringify(indexedVolumes, null, 4);
+</script>

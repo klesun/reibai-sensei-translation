@@ -198,8 +198,9 @@ const updateUrl = (qualifier: PageTransactionBase) => {
 export default async (fetchingBubbles: Promise<string>) => {
     const googleTranslationsPath = API_ENDPOINT + '/unv/google_translations.json';
     const whenGoogleTranslations = fetch(googleTranslationsPath)
-        .then(rs => rs.status === 200 ? rs.json() : []);
-    const whenVolumesIndex = fetch(API_ENDPOINT + "/assets/volumes_index.json")
+        .then(rs => rs.status === 200 ? rs.json() : [])
+        .catch(error => []);
+    const whenVolumesIndex = fetch("./../assets/volumes_index.json")
         .then(rs => rs.json());
     const fetchingNotes = fetch(API_ENDPOINT + '/assets/translator_notes_transactions.json');
     const fetchingUnrecognizedBubbles = fetch(API_ENDPOINT + '/assets/unrecognized_bubble_transactions.json');
@@ -244,7 +245,7 @@ export default async (fetchingBubbles: Promise<string>) => {
         updateUrl(qualifier);
         const pageName = getPageName(qualifier);
 
-        const jsonPath = API_ENDPOINT + '/assets/ocred_volumes/' + pageName + '.jpg.json';
+        const jsonPath = 'https://klesun-misc.github.io/reibai-sensei-translation-ocr-output/ocred_volumes/' + pageName + '.jpg.json';
 
         gui.status_message_holder.textContent = "Loading " + pageName + "...";
         loadingPagesQueue.enqueue(async () => {

@@ -153,8 +153,8 @@ const handleHttpRequestSafe = (req, res) => {
         const whenResult = Promise.resolve(req).then(submitLocalBackup);
         serveJson(whenResult, res);
     } else if (url.pathname === '/api/handleDiscordInteraction') {
-	const whenResult = Promise.resolve(req).then(handleDiscordInteraction);
-	serveJson(whenResult, res);
+        const whenResult = Promise.resolve(req).then(handleDiscordInteraction);
+        serveJson(whenResult, res);
     } else {
         serveStaticFile(req, res).catch(exc => {
             res.statusCode = exc?.statusCode || 500;
@@ -166,13 +166,10 @@ const handleHttpRequestSafe = (req, res) => {
     }
 };
 
-const PORT = 36418;
+const PORT = 8080;
 
-const server = https.createServer({
-    key: fsSync.readFileSync('/etc/letsencrypt/live/torr.rent/privkey.pem'),
-    cert: fsSync.readFileSync('/etc/letsencrypt/live/torr.rent/fullchain.pem'),
-}, handleHttpRequestSafe).listen(36418, '0.0.0.0', () => {
-    console.log('listening https://torr.rent:36418');
+const server = http.createServer(handleHttpRequestSafe).listen(PORT, '0.0.0.0', () => {
+    console.log('listening https://torr.rent:' + PORT);
 });
 server.keepAliveTimeout = 3 * 60 * 1000; // 3 minutes, for fast browsing
 

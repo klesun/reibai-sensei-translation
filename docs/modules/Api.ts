@@ -99,8 +99,8 @@ function bufferToHex (buffer: ArrayBuffer) {
         .join("");
 }
 
-// export const API_ENDPOINT = "https://torr.rent:36418";
-export const API_ENDPOINT = "http://localhost:36418";
+// export const API_ENDPOINT = "http://localhost:36418";
+export const API_ENDPOINT = "https://ololo-4dk5v5gk4a-uc.a.run.app";
 
 export const getApiToken = async (urlSearchParams: URLSearchParams): Promise<string> => {
     if (urlSearchParams.has('api_token')) {
