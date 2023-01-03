@@ -27,3 +27,7 @@ const submitLocalBackup = async (req) => {
 };
 
 export default submitLocalBackup;
+
+export function listLocalBackups(req) {
+    return fs.readdir(TARGET_DIR);
+}

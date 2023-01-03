@@ -9,7 +9,7 @@ import {fileURLToPath} from "url";
 import { HttpErrorBase } from "@curveball/http-errors";
 import submitBubbleUpdate from "./server/api/submitBubbleUpdate.js";
 import submitNoteUpdate from "./server/api/submitNoteUpdate.js";
-import submitLocalBackup from "./server/api/submitLocalBackup.js";
+import submitLocalBackup, { listLocalBackups } from "./server/api/submitLocalBackup.js";
 import submitUnrecognizedBubbleUpdate from "./server/api/submitUnrecognizedBubbleUpdate.js";
 import { createGzip } from 'zlib';
 import {readJson} from "./server/utils/Http.js";
@@ -151,6 +151,9 @@ const handleHttpRequestSafe = (req, res) => {
         serveJson(whenResult, res);
     } else if (url.pathname === '/api/submitLocalBackup') {
         const whenResult = Promise.resolve(req).then(submitLocalBackup);
+        serveJson(whenResult, res);
+    } else if (url.pathname === '/api/listLocalBackups') {
+        const whenResult = Promise.resolve(req).then(listLocalBackups);
         serveJson(whenResult, res);
     } else if (url.pathname === '/api/handleDiscordInteraction') {
         const whenResult = Promise.resolve(req).then(handleDiscordInteraction);
