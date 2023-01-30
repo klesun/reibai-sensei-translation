@@ -13,6 +13,7 @@ import submitLocalBackup, { listLocalBackups } from "./server/api/submitLocalBac
 import submitUnrecognizedBubbleUpdate from "./server/api/submitUnrecognizedBubbleUpdate.js";
 import { createGzip } from 'zlib';
 import {readJson} from "./server/utils/Http.js";
+import { promises as fs } from "fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_PATH = path.resolve(__dirname, './docs');
@@ -176,3 +177,37 @@ const server = http.createServer(handleHttpRequestSafe).listen(PORT, '0.0.0.0', 
 });
 server.keepAliveTimeout = 3 * 60 * 1000; // 3 minutes, for fast browsing
 
+const startEpochMs = Date.now();
+
+async function signalShutdown(signal) {
+    console.log("Received a process shutdown signal, preparing to stop the application", signal);
+
+    const versionedOcrBubbles = JSON.parse((await fs.readFile(
+        __dirname + "/docs/assets/translation_update_transactions.json", "utf8"
+    )) + "null]").slice(0, -1).filter(r => new Date(r.sentAt).getTime() > startEpochMs);
+    const versionedNotes = JSON.parse((await fs.readFile(
+        __dirname + "/docs/assets/translator_notes_transactions.json", "utf8"
+    )) + "null]").slice(0, -1).filter(r => new Date(r.sentAt).getTime() > startEpochMs);
+    const versionedPlacedBubbles = JSON.parse((await fs.readFile(
+        __dirname + "/docs/assets/unrecognized_bubble_transactions.json", "utf8"
+    )) + "null]").slice(0, -1).filter(r => new Date(r.sentAt).getTime() > startEpochMs);
+
+    if (versionedOcrBubbles.length === 0 &&
+        versionedNotes.length === 0 &&
+        versionedPlacedBubbles.length === 0
+    ) {
+        console.log("No FS updates");
+    } else {
+        console.log("FS Updates: " + JSON.stringify({
+            versionedOcrBubbles, versionedNotes, versionedPlacedBubbles,
+        }));
+    }
+
+    console.log("All FS updates logged successfully, exiting gracefully");
+
+    process.exit(0);
+}
+
+process.on('SIGINT', signalShutdown);
+process.on('SIGTERM', signalShutdown);
+process.on('SIGHUP', signalShutdown);
