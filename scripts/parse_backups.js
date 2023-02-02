@@ -110,7 +110,7 @@ function getOcrBubbleKey(bubble) {
     return JSON.stringify({ volumeNumber, pageIndex, ocrBubbleIndex, eng_human, bounds, sentAt, ...rest });
 }
 const dedupedOcr = [...new Map(versionedOcrBubbles.map(b => [getOcrBubbleKey(b), b])).values()];
-// console.log("[\n" + deduped.map(b => JSON.stringify(b)).join(",\n") + ",\n");
+// console.log("[\n" + dedupedOcr.map(b => JSON.stringify(b)).join(",\n") + ",\n");
 
 function getPlacedBubbleKey(placedBubble) {
     const { volumeNumber, pageIndex, uuid, eng_human, sentAt } = placedBubble;
