@@ -7,6 +7,31 @@
     const API_KEY = 'hujREDACTEDhuj';
     const RAWS_ROOT_DIR_ID = "1DvhyRBf5JbEUzy2NBhgJ-n79fCKxSekr";
 
+    /**
+     * "image_10" > "image_9"
+     * @see https://stackoverflow.com/a/65687141
+     */
+    function compareVersion(a, b) {
+        return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+        // let commonPart = 0;
+        // for (let i = 0; i < Math.min(a.length, b.length); ++i) {
+        //     if (a[i] === b[i]) {
+        //         commonPart = i;
+        //     } else {
+        //         break;
+        //     }
+        // }
+        // a = a.slice(commonPart);
+        // b = b.slice(commonPart);
+        // const [, aNum] = a.match(/^\d*/);
+        // const [, bNum] = a.match(/^\d*/);
+        // if (aNum && bNum && aNum - bNum) {
+        //     return aNum - bNum;
+        // } else {
+        //     return a.name < b.name ? -1 : +1;
+        // }
+    }
+
     async function listDirectoryFiles(directoryId) {
         const query = `'${directoryId}' in parents`;
         const endpoint = "https://www.googleapis.com/drive/v3/files";
@@ -22,7 +47,7 @@
             nextPageToken = response.nextPageToken;
         } while (nextPageToken);
 
-        return files.sort((a,b) => a.name < b.name ? -1 : +1);
+        return files.sort((a,b) => compareVersion(a.name, b.name));
     }
 
     const indexedVolumes = [];
