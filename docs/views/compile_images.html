@@ -6,7 +6,7 @@
         </div>
         <div>
             <div>
-                <p>On this page you compile translated text into resulting png. WIP.</p>
+                <p>On this page you compile translated text into resulting png.</p>
                 <a id="download_result_link">
                     <button>Download compiled PNGs</button>
                 </a>
@@ -42,8 +42,8 @@
 ></script>
 
 <script type="module">
-    // const API_ENDPOINT = "http://localhost:36418";
-    const API_ENDPOINT = "https://ololo-4dk5v5gk4a-uc.a.run.app";
+    export const API_ENDPOINT = "http://localhost:8080";
+    // const API_ENDPOINT = "https://ololo-4dk5v5gk4a-uc.a.run.app";
 
     const whenTsBrowser = import('https://klesun.github.io/ts-browser/src/ts-browser.js');
     const fetchingBubbles = fetch(API_ENDPOINT + '/assets/translation_update_transactions.json');

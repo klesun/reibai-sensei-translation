@@ -33,7 +33,7 @@ export default async (
         .then(rs => parseStreamedJson<NoteTransaction>(rs))
         .then(txs => collectNotesStorage(txs));
     const volumes = (await fetch('./../assets/volumes_index.json')
-        .then(rs => rs.json())).slice(3);
+        .then(rs => rs.json())).slice(5, 13);
 
     const bubbleMapping = await whenBubbleMapping;
     const unrecognizedBubbleMapping = await whenUnrecognizedBubbleMapping;
@@ -54,9 +54,8 @@ export default async (
                 .filter(c => c.startPage <= pageIndex + 1)
                 .slice(-1)
                 .map(c => c.chapter)[0] ?? 0;
-            const pageId = pageIds[pageIndex];
             const qualifier = {volumeNumber, pageIndex};
-            await CompileImage({pageId: pageId, qualifier, translations, gui});
+            await CompileImage({qualifier, translations, gui});
             const pngUrl = gui.output_png_canvas.toDataURL();
 
             const pngFileName = 'reibai' +

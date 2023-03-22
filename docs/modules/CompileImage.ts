@@ -1,8 +1,7 @@
 import type {PageTransactionBase} from "./Api";
 import type { Translations} from "./DataParse";
-import {getPageName} from "./DataParse";
 import type {TranslationTransaction, UnrecognizedTranslationTransaction} from "./Api";
-import {API_ENDPOINT} from "./Api";
+import {getPageName} from "./DataParse";
 
 const FONT_SIZE = 12;
 const FONT = FONT_SIZE + 'px Comic Sans MS';
@@ -14,7 +13,7 @@ function toSuperscript(number: number) {
 }
 
 export default async ({pageId, qualifier, translations, gui}: {
-    pageId: string,
+    pageId?: string,
     qualifier: PageTransactionBase,
     translations: Translations
     gui: {
@@ -138,7 +137,12 @@ export default async ({pageId, qualifier, translations, gui}: {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, gui.output_png_canvas.width, gui.output_png_canvas.height);
 
-        const imageUrl = "https://drive.google.com/uc?export=view&id=" + pageId;
+        const pageName = getPageName(qualifier);
+        // google drive can only be used for preview, but not actual volume
+        // compilation, because it's slow and gets banned as botting activity
+        const imageUrl = pageId
+            ? "https://drive.google.com/uc?export=view&id=" + pageId
+            : `../unv/volumes/${pageName}.jpg`;
         gui.src_scan_image.setAttribute('src', imageUrl);
 
         await new Promise<void>((resolve) => {
