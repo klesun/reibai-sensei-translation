@@ -849,3 +849,6 @@
 {"volumeNumber":13,"pageIndex":8,"uuid":"037770209121310905","bounds":{"minX":302,"minY":288,"maxX":350,"maxY":336},"eng_human":"Don't say stuff like that!","sentAt":"2023-03-18T13:20:02.653Z"},
 {"volumeNumber":13,"pageIndex":8,"uuid":"032985724198583277","bounds":{"minX":190,"minY":509,"maxX":238,"maxY":557},"eng_human":"Shaddup!","sentAt":"2023-03-18T13:21:11.492Z"},
 
+{"volumeNumber":6,"pageIndex":24,"uuid":"047595016967237735","eng_human":"I want to be more than inspired.","bounds":{"minX":456,"minY":549,"maxX":504,"maxY":597},"author":"ngelzzz","sentAt":"2023-03-22T20:10:03.283Z"},
+{"volumeNumber":6,"pageIndex":56,"uuid":"04648309562923245","eng_human":"development room","bounds":{"minX":483,"minY":75,"maxX":531,"maxY":123},"author":"ngelzzz","sentAt":"2023-03-22T20:48:29.367Z"},
+{"volumeNumber":6,"pageIndex":81,"uuid":"05760271319800268","eng_human":"Did you get bitten?!","bounds":{"minX":330,"minY":242,"maxX":378,"maxY":290},"author":"ngelzzz","sentAt":"2023-03-22T21:06:16.106Z"},
