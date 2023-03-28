@@ -33,7 +33,7 @@ export default async (
         .then(rs => parseStreamedJson<NoteTransaction>(rs))
         .then(txs => collectNotesStorage(txs));
     const volumes = (await fetch('./../assets/volumes_index.json')
-        .then(rs => rs.json())).slice(5, 13);
+        .then(rs => rs.json())).slice(6, 14);
 
     const bubbleMapping = await whenBubbleMapping;
     const unrecognizedBubbleMapping = await whenUnrecognizedBubbleMapping;
