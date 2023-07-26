@@ -205,7 +205,7 @@ export default async (fetchingBubbles: Promise<string>) => {
     const fetchingNotes = fetch(API_ENDPOINT + '/assets/translator_notes_transactions.json');
     const fetchingUnrecognizedBubbles = fetch(API_ENDPOINT + '/assets/unrecognized_bubble_transactions.json');
 
-    if (window.localStorage.getItem("APP_DEVICE_UID") === "09554110265711209") {
+    if (window.localStorage.getItem("APP_DEVICE_UID") === "0561797072482626") {
         const REIBAI_API_TOKEN = window.localStorage.getItem("REIBAI_API_TOKEN");
         window.localStorage.clear();
         window.localStorage.setItem("REIBAI_API_TOKEN", REIBAI_API_TOKEN);
