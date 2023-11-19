@@ -170,7 +170,7 @@ const handleHttpRequestSafe = (req, res) => {
     }
 };
 
-const PORT = 8080;
+const PORT = 36418;
 
 const server = http.createServer(handleHttpRequestSafe).listen(PORT, '0.0.0.0', () => {
     console.log('listening https://torr.rent:' + PORT);

@@ -890,7 +890,7 @@
             {"chapter": 99, "startPage": 113, "englishTitle": "hidden Talent", "japaneseTitle": "かくし芸"},
             {"chapter": 100, "startPage": 123, "englishTitle": "There are seven of them", "japaneseTitle": "七人いる"},
             {"chapter": 101, "startPage": 144, "englishTitle": "The truth about Jizo", "japaneseTitle": "地蔵の真実"},
-            {"chapter": 101.1, "startPage": 151, "englishTitle": "おまけマンガ 一つ目小僧のなぞ", "japaneseTitle": "Extras The riddle of Hitotsume-kozo"}
+            {"chapter": 101.1, "startPage": 151, "englishTitle": "Extras The riddle of Hitotsume-kozo", "japaneseTitle": "おまけマンガ 一つ目小僧のなぞ"}
         ],
         "pageIds": [
             "1FIi03ILOUzv52xK-Ur5sa8OC8m9SeBkE", "1gZSN-v6qtYAsA8j1pUVOeJmLT_fiL1d8",
@@ -977,17 +977,17 @@
         "volume": 11,
         "pages": 158,
         "chapters": [
-            {"chapter": 102, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 103, "startPage": 17, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 104, "startPage": 27, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 105, "startPage": 56, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 106, "startPage": 69, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 107, "startPage": 87, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 108, "startPage": 101, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 109, "startPage": 111, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 110, "startPage": 119, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 110.1, "startPage": 123, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 110.2, "startPage": 154, "englishTitle": "", "japaneseTitle": ""}
+            {"chapter": 102, "startPage": 7, "englishTitle": "Let's cool down", "japaneseTitle": "涼をとろう"},
+            {"chapter": 103, "startPage": 17, "englishTitle": "for the most part", "japaneseTitle": "たかられて"},
+            {"chapter": 104, "startPage": 27, "englishTitle": "Cicada fireworks", "japaneseTitle": "空蝉花火"},
+            {"chapter": 105, "startPage": 56, "englishTitle": "Awaken motherhood", "japaneseTitle": "ざめろ母性"},
+            {"chapter": 106, "startPage": 69, "englishTitle": "time to risk one's life", "japaneseTitle": "命がけの時間"},
+            {"chapter": 107, "startPage": 87, "englishTitle": "Month of counterattack", "japaneseTitle": "逆襲の月"},
+            {"chapter": 108, "startPage": 101, "englishTitle": "Barely out", "japaneseTitle": "ぎりぎりアウト"},
+            {"chapter": 109, "startPage": 111, "englishTitle": "Emma-san", "japaneseTitle": "エマさん"},
+            {"chapter": 110, "startPage": 119, "englishTitle": "Platoon Autumn", "japaneseTitle": "し隊の秋"},
+            {"chapter": 110.1, "startPage": 123, "englishTitle": "Special Edition Go forth! Earth Invasion Squad", "japaneseTitle": "特別編 いざゆけ! 地球侵略し隊"},
+            {"chapter": 110.2, "startPage": 154, "englishTitle": "Extras At the signing event", "japaneseTitle": "おまけマンガ サイン会にて"}
         ],
         "pageIds": [
             "1hlaxdwtuHMy970WyC-eS6-QmbzOZlEXy", "1apbTzyPkgCeu0JGRowYGqNPQLannzDMh",
@@ -1075,19 +1075,19 @@
         "volume": 12,
         "pages": 160,
         "chapters": [
-            {"chapter": 111, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 112, "startPage": 17, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 113, "startPage": 33, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 114, "startPage": 43, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 115, "startPage": 57, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 116, "startPage": 67, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 117, "startPage": 81, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 118, "startPage": 91, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 119, "startPage": 103, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 120, "startPage": 115, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 121, "startPage": 131, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 122, "startPage": 141, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 123, "startPage": 149, "englishTitle": "", "japaneseTitle": ""}
+            {"chapter": 111, "startPage": 7, "englishTitle": "Telepathy", "japaneseTitle": "以心伝心"},
+            {"chapter": 112, "startPage": 17, "englishTitle": "Stylish", "japaneseTitle": "洒落者"},
+            {"chapter": 113, "startPage": 33, "englishTitle": "Ecolife", "japaneseTitle": "エコライフ"},
+            {"chapter": 114, "startPage": 43, "englishTitle": "Showdown", "japaneseTitle": "対決"},
+            {"chapter": 115, "startPage": 57, "englishTitle": "Time for the sick people", "japaneseTitle": "病人の時間"},
+            {"chapter": 116, "startPage": 67, "englishTitle": "Santa descends", "japaneseTitle": "サンタ降臨"},
+            {"chapter": 117, "startPage": 81, "englishTitle": "Santa Hunt", "japaneseTitle": "サンタ狩り"},
+            {"chapter": 118, "startPage": 91, "englishTitle": "Holy night", "japaneseTitle": "聖夜"},
+            {"chapter": 119, "startPage": 103, "englishTitle": "Cat tree", "japaneseTitle": "ねこツリー"},
+            {"chapter": 120, "startPage": 115, "englishTitle": "Feng Shui", "japaneseTitle": "風水"},
+            {"chapter": 121, "startPage": 131, "englishTitle": "Black Nursing", "japaneseTitle": "黒い看病"},
+            {"chapter": 122, "startPage": 141, "englishTitle": "Subtle benefits", "japaneseTitle": "微妙なご利益"},
+            {"chapter": 123, "startPage": 149, "englishTitle": "End of year when you want to stay indoors", "japaneseTitle": "引きこもりたい年末"}
         ],
         "pageIds": [
             "1n9YkI6R1L2nic2GAZdvZQq6ka16SNBLF", "1wodjnXdRqES4RjTbVnftGbuv09cTwNvL",
