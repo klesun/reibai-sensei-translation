@@ -1176,18 +1176,18 @@
         "volume": 13,
         "pages": 159,
         "chapters": [
-            {"chapter": 124, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 125, "startPage": 19, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 126, "startPage": 31, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 127, "startPage": 41, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 128, "startPage": 51, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 129, "startPage": 65, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 130, "startPage": 75, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 131, "startPage": 85, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 132, "startPage": 95, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 133, "startPage": 113, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 134, "startPage": 123, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 135, "startPage": 136, "englishTitle": "", "japaneseTitle": ""}
+            {"chapter": 124, "startPage": 7, "englishTitle": "At the Bathhouse in February", "japaneseTitle": "2月の風呂屋にて"},
+            {"chapter": 125, "startPage": 19, "englishTitle": "Document of the invasion of Earth", "japaneseTitle": "ドキュメント・オブ・地球侵略"},
+            {"chapter": 126, "startPage": 31, "englishTitle": "Life in the middle of winter", "japaneseTitle": "真冬の生活"},
+            {"chapter": 127, "startPage": 41, "englishTitle": "Demon brothers", "japaneseTitle": "鬼の兄弟"},
+            {"chapter": 128, "startPage": 51, "englishTitle": "The obsession of dolls", "japaneseTitle": "雛人形の執念"},
+            {"chapter": 129, "startPage": 65, "englishTitle": "Passion of the spirit", "japaneseTitle": "霊の受難"},
+            {"chapter": 130, "startPage": 75, "englishTitle": "Black cat motherhood, once again", "japaneseTitle": "黒ねこの母性、再び"},
+            {"chapter": 131, "startPage": 85, "englishTitle": "Ignorance is bliss", "japaneseTitle": "知らぬが仏"},
+            {"chapter": 132, "startPage": 95, "englishTitle": "April fools", "japaneseTitle": "4月1日"},
+            {"chapter": 133, "startPage": 113, "englishTitle": "Wisdom of the ancients", "japaneseTitle": "古人の知恵"},
+            {"chapter": 134, "startPage": 123, "englishTitle": "Tides and Cat", "japaneseTitle": "潮と猫"},
+            {"chapter": 135, "startPage": 136, "englishTitle": "Graveyard baseball", "japaneseTitle": "墓場野球"}
         ],
         "pageIds": [
             "1YHssL5nVQ-3KqWs_PTWGsifhRQynNygx", "1eml3Jq-cMk9P1DDpOu5JyDRQmTK6-z2_",
@@ -1276,17 +1276,17 @@
         "volume": 14,
         "pages": 155,
         "chapters": [
-            {"chapter": 136, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 137, "startPage": 17, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 138, "startPage": 27, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 139, "startPage": 47, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 140, "startPage": 57, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 141, "startPage": 68, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 142, "startPage": 88, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 143, "startPage": 101, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 144, "startPage": 111, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 145, "startPage": 131, "englishTitle": "", "japaneseTitle": ""},
-            {"chapter": 146, "startPage": 143, "englishTitle": "", "japaneseTitle": ""}
+            {"chapter": 136, "startPage": 7, "englishTitle": "Mother's day", "japaneseTitle": ""},
+            {"chapter": 137, "startPage": 17, "englishTitle": "Intriguing", "japaneseTitle": "気になる"},
+            {"chapter": 138, "startPage": 27, "englishTitle": "Mantic previous life", "japaneseTitle": "マンチック前世"},
+            {"chapter": 139, "startPage": 47, "englishTitle": "Jumping at shadows", "japaneseTitle": "疑心暗鬼"},
+            {"chapter": 140, "startPage": 57, "englishTitle": "Acrobatic hair growth", "japaneseTitle": "アクロバティック増毛"},
+            {"chapter": 141, "startPage": 68, "englishTitle": "Saving goldfish", "japaneseTitle": "金魚すくい"},
+            {"chapter": 142, "startPage": 88, "englishTitle": "Weight loss", "japaneseTitle": "痩身"},
+            {"chapter": 143, "startPage": 101, "englishTitle": "Can't hold back", "japaneseTitle": "我慢できない"},
+            {"chapter": 144, "startPage": 111, "englishTitle": "Ghost snapshot", "japaneseTitle": "心霊スナップ"},
+            {"chapter": 145, "startPage": 131, "englishTitle": "Fur", "japaneseTitle": "毛"},
+            {"chapter": 146, "startPage": 143, "englishTitle": "Feat of strength", "japaneseTitle": "力技"}
         ],
         "pageIds": [
             "1ROLTO8ejyaxcwEWqiLpYVoOBVfJgSZIP", "1PAMDm8kZDpxMP6ICYQHCkgVdwxsYZ3Ml",
@@ -1372,6 +1372,19 @@
     {
         "volume": 15,
         "pages": 148,
+        "chapters": [
+            {"chapter": 147, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 148, "startPage": 29, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 149, "startPage": 39, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 150, "startPage": 49, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 151, "startPage": 69, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 152, "startPage": 81, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 153, "startPage": 91, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 154, "startPage": 109, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 155, "startPage": 123, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 156, "startPage": 131, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 156.1, "startPage": 150, "englishTitle": "", "japaneseTitle": ""}
+        ],
         "pageIds": [
             "1wSkzjO1_Bp96oaSoJflR7xToTnlcFaSf",
             "1SVgMI7ll7HwbE9AvgeMiTL30mQP1hBZW",
@@ -1526,6 +1539,20 @@
     {
         "volume": 16,
         "pages": 149,
+        "chapters": [
+            {"chapter": 157, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 158, "startPage": 19, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 159, "startPage": 29, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 160, "startPage": 33, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 161, "startPage": 53, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 162, "startPage": 63, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 163, "startPage": 75, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 164, "startPage": 89, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 165, "startPage": 103, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 166, "startPage": 113, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 167, "startPage": 131, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 168, "startPage": 145, "englishTitle": "", "japaneseTitle": ""}
+        ],
         "pageIds": [
             "1wgCGLHjSxy2utgv8dpQERvl7u7Yw-iBb",
             "14UcaLtaY7S-xOTTPmpKPy3QQcWPU2YDV",
@@ -1681,6 +1708,19 @@
     {
         "volume": 17,
         "pages": 149,
+        "chapters": [
+            {"chapter": 169, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 170, "startPage": 25, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 171, "startPage": 35, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 172, "startPage": 49, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 173, "startPage": 69, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 174, "startPage": 81, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 175, "startPage": 89, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 176, "startPage": 109, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 177, "startPage": 119, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 178, "startPage": 131, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 178.1, "startPage": 149, "englishTitle": "", "japaneseTitle": ""}
+        ],
         "pageIds": [
             "10jt41QFVUZo9FYiYwF8VzKT8ZWkvsXn6",
             "18Oj17DghaQURzRlwYzq6NMULVMkHU5ym",
@@ -1836,6 +1876,20 @@
     {
         "volume": 18,
         "pages": 149,
+        "chapters": [
+            {"chapter": 179, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 180, "startPage": 19, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 181, "startPage": 29, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 182, "startPage": 43, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 183, "startPage": 59, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 184, "startPage": 71, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 185, "startPage": 91, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 186, "startPage": 103, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 187, "startPage": 111, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 188, "startPage": 125, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 189, "startPage": 135, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 189.1, "startPage": 145, "englishTitle": "", "japaneseTitle": ""}
+        ],
         "pageIds": [
             "1V_FYmGwM672ElbAVI7rseDjs0KTrh3Uk",
             "1U04Uo8YYyvtUqF7gtTAZGfoC2i0L5Th_",
@@ -1991,6 +2045,18 @@
     {
         "volume": 19,
         "pages": 159,
+        "chapters": [
+            {"chapter": 180, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 181, "startPage": 21, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 182, "startPage": 39, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 183, "startPage": 53, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 184, "startPage": 63, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 185, "startPage": 81, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 186, "startPage": 95, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 187, "startPage": 105, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 188, "startPage": 127, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 189, "startPage": 145, "englishTitle": "", "japaneseTitle": ""}
+        ],
         "pageIds": [
             "1rM3Is-02SAY1CdKnqMBTqGn_FAZPXpTi",
             "19mZS8Ze7ShoSP5Qeda6DxpY3kyYZDcx0",
@@ -2156,6 +2222,21 @@
     {
         "volume": 20,
         "pages": 189,
+        "chapters": [
+            {"chapter": 200, "startPage": 7, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 201, "startPage": 17, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 202, "startPage": 35, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 203, "startPage": 49, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 204, "startPage": 59, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 205, "startPage": 81, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 206, "startPage": 95, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 207, "startPage": 105, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 208, "startPage": 123, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 209, "startPage": 133, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 210, "startPage": 143, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 210.1, "startPage": 157, "englishTitle": "", "japaneseTitle": ""},
+            {"chapter": 210.2, "startPage": 175, "englishTitle": "", "japaneseTitle": ""}
+        ],
         "pageIds": [
             "1JM0WZ5jHh5B3BKYmJFuyLOaPzpWyIrs8",
             "1Fe4RkGAMPIx8evk6m1rxyuDlvFBtivLX",
