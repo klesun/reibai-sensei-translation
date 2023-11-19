@@ -68,7 +68,8 @@
 
 <script type="module">
     // const API_ENDPOINT = "http://localhost:8080";
-    const API_ENDPOINT = "https://ololo-4dk5v5gk4a-uc.a.run.app";
+    //const API_ENDPOINT = "https://ololo-4dk5v5gk4a-uc.a.run.app";
+    export const API_ENDPOINT = "https://api.reibai.info";
 
     const whenInitialProgressDataStr = fetch(API_ENDPOINT + '/assets/translation_update_transactions.json')
         .then(rs => rs.text());
